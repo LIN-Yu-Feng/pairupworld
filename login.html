@@ -1,0 +1,672 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PairUp - Sign Up / Login</title>
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background: linear-gradient(135deg, #ff7f00, #e66d00, #ff7f00);
+            background-size: 400% 400%;
+            animation: gradientShift 15s ease infinite;
+            overflow-y: scroll;
+            transition: opacity 0.3s ease, transform 0.3s ease;
+        }
+
+        @keyframes gradientShift {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        /* Top bar styles (same as homepage) */
+        .top-bar {
+            background-color: #ffffff;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            padding: 10px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        @keyframes bounce {
+            0%, 20%, 50%, 80%, 100% {
+                transform: translateY(0);
+            }
+            40% {
+                transform: translateY(-10px);
+            }
+            60% {
+                transform: translateY(-5px);
+            }
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            75% { transform: translateX(5px); }
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+        }
+
+        @keyframes glow {
+            0%, 100% {
+                box-shadow: 0 4px 20px rgba(255, 127, 0, 0.3);
+            }
+            50% {
+                box-shadow: 0 8px 30px rgba(255, 127, 0, 0.6);
+            }
+        }
+
+        .top-bar.bounce {
+            animation: bounce 0.6s ease;
+        }
+
+        .top-bar {
+            backdrop-filter: blur(10px);
+            background: rgba(255, 255, 255, 0.95);
+            transition: all 0.3s ease;
+        }
+
+        .top-bar:hover {
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            background: rgba(255, 255, 255, 0.98);
+        }
+
+        .logo {
+            height: 60px;
+            background-color: rgb(254, 254, 254);
+            padding: 5px;
+            border-radius: 5px;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 20px;
+        }
+
+        .nav-links a {
+            text-decoration: none;
+            color: #333;
+            font-weight: bold;
+            padding: 10px 15px;
+            border-radius: 5px;
+            transition: background-color 0.3s, transform 0.2s;
+        }
+
+        .nav-links a:hover {
+            background-color: #f0f0f0;
+            transform: translateY(-2px);
+        }
+
+        .nav-links a {
+            position: relative;
+            overflow: hidden;
+        }
+
+        .nav-links a::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: left 0.5s;
+        }
+
+        .nav-links a:hover::before {
+            left: 100%;
+        }
+
+        .nav-links .signup {
+            background-color: #ff7f00;
+            color: white;
+        }
+
+        .nav-links .signup:hover {
+            background-color: #e66d00;
+            transform: scale(1.05) translateY(-2px);
+            animation: glow 2s infinite;
+        }
+
+        /* Login section styles */
+        .login-section {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            padding: 20px;
+            box-sizing: border-box;
+            position: relative;
+        }
+
+        .login-section::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+        }
+
+        .login-container {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: 0 8px 40px rgba(0, 0, 0, 0.2);
+            width: 100%;
+            max-width: 400px;
+            text-align: center;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            animation: fadeInUp 0.8s ease;
+            position: relative;
+            z-index: 1;
+            transition: all 0.3s ease;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .login-container:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 50px rgba(0, 0, 0, 0.25);
+        }
+
+        .login-container h2 {
+            color: #ff7f00;
+            margin-bottom: 20px;
+            font-size: 2em;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+            animation: fadeInUp 0.8s ease 0.2s both;
+        }
+
+        .login-container input {
+            width: 100%;
+            padding: 15px;
+            margin: 10px auto;
+            border: 2px solid rgba(255, 127, 0, 0.3);
+            border-radius: 10px;
+            font-size: 1em;
+            background: rgba(255, 255, 255, 0.9);
+            transition: all 0.3s ease;
+            backdrop-filter: blur(5px);
+            display: block;
+            text-align: center;
+            box-sizing: border-box;
+        }
+
+        .login-container input:focus {
+            outline: none;
+            border-color: #ff7f00;
+            box-shadow: 0 0 15px rgba(255, 127, 0, 0.3);
+            transform: scale(1.02);
+        }
+
+        .login-container input.error {
+            border-color: #ff4444;
+            animation: shake 0.5s ease;
+        }
+
+        .login-container button {
+            width: 100%;
+            padding: 15px;
+            margin: 15px auto;
+            border: none;
+            border-radius: 10px;
+            background: linear-gradient(135deg, #ff7f00, #e66d00);
+            color: white;
+            font-weight: bold;
+            font-size: 1.1em;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            display: block;
+            text-align: center;
+            box-sizing: border-box;
+        }
+
+        .login-container button::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: left 0.5s;
+        }
+
+        .login-container button:hover::before {
+            left: 100%;
+        }
+
+        .login-container button:hover {
+            background: linear-gradient(135deg, #e66d00, #cc5500);
+            transform: translateY(-2px) scale(1.02);
+            box-shadow: 0 8px 25px rgba(255, 127, 0, 0.4);
+        }
+
+        .login-container button:active {
+            transform: translateY(0) scale(0.98);
+        }
+
+        .google-login {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            background: linear-gradient(135deg, #4285f4, #357ae8);
+            padding: 15px;
+            margin: 15px auto;
+            border-radius: 10px;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            width: 100%;
+            box-sizing: border-box;
+            cursor: pointer;
+            border: none;
+            color: white;
+            font-weight: bold;
+            font-size: 1.1em;
+        }
+
+        .google-login::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: left 0.5s;
+        }
+
+        .google-login:hover::before {
+            left: 100%;
+        }
+
+        .google-login:hover {
+            background: linear-gradient(135deg, #357ae8, #2968cc);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(66, 133, 244, 0.4);
+        }
+
+        .google-login img {
+            width: 20px;
+            height: 20px;
+        }
+
+        .toggle-text {
+            margin: 15px auto 0;
+            color: #333;
+            text-align: center;
+            width: 100%;
+            display: block;
+        }
+
+        .toggle-text a {
+            color: #ff7f00;
+            text-decoration: none;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .toggle-text a::after {
+            content: '';
+            position: absolute;
+            width: 0;
+            height: 2px;
+            bottom: -2px;
+            left: 50%;
+            background-color: #ff7f00;
+            transition: all 0.3s ease;
+        }
+
+        .toggle-text a:hover {
+            color: #e66d00;
+            transform: scale(1.05);
+        }
+
+        .toggle-text a:hover::after {
+            width: 100%;
+            left: 0;
+        }
+
+
+
+
+
+        /* Responsive design */
+        @media (max-width: 768px) {
+            .top-bar {
+                flex-direction: column;
+                gap: 15px;
+            }
+
+            .nav-links {
+                flex-wrap: wrap;
+                justify-content: center;
+            }
+
+            .login-container {
+                padding: 20px;
+            }
+
+            .login-container h2 {
+                font-size: 1.8em;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .nav-links {
+                gap: 10px;
+            }
+
+            .nav-links a {
+                padding: 8px 12px;
+            }
+
+            .login-container {
+                padding: 15px;
+                width: 90%;
+            }
+
+            .login-container h2 {
+                font-size: 1.5em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Top bar (same as homepage) -->
+    <header class="top-bar">
+        <a href="/homepage.html">
+            <img src="pairuplogo.png" alt="Pair Up World Logo" class="logo">
+        </a>
+        <nav class="nav-links">
+            <a href="#">About</a>
+            <a href="#">Students</a>
+            <a href="#">Tutors</a>
+            <a href="#">Organizations</a>
+            <a href="#">Contact</a>
+            <a href="login.html" class="signup">Sign Up / Login</a>
+        </nav>
+    </header>
+
+    <!-- Login section -->
+    <section class="login-section">
+        <div class="login-container">
+            <h2 id="form-title">Sign Up</h2>
+            <input type="email" id="email" placeholder="Enter your email" required>
+            <input type="password" id="password" placeholder="Enter your password" required>
+            <button id="submit-btn">Sign Up</button>
+
+            
+
+            <div class="toggle-text">
+                Already have an account? <a href="#" id="toggle-link">Login</a>
+            </div>
+        </div>
+    </section>
+
+    <script>
+        // Top bar bounce effect
+        const topBar = document.querySelector('.top-bar');
+        let isBouncing = false;
+
+        window.addEventListener('scroll', () => {
+            if ((window.innerHeight + window.scrollY) >= document.body.offsetHeight - 10 && !isBouncing) {
+                isBouncing = true;
+                topBar.classList.add('bounce');
+                setTimeout(() => {
+                    topBar.classList.remove('bounce');
+                    isBouncing = false;
+                }, 600);
+            }
+        });
+
+        // Enhanced toggle between Sign Up and Login with animation
+        const formTitle = document.querySelector('#form-title');
+        const submitBtn = document.querySelector('#submit-btn');
+        const toggleLink = document.querySelector('#toggle-link');
+        const loginContainer = document.querySelector('.login-container');
+
+        function animateToggle() {
+            loginContainer.style.transform = 'scale(0.95)';
+            loginContainer.style.opacity = '0.8';
+            setTimeout(() => {
+                loginContainer.style.transform = 'scale(1)';
+                loginContainer.style.opacity = '1';
+            }, 200);
+        }
+
+        toggleLink.addEventListener('click', (e) => {
+            e.preventDefault();
+            animateToggle();
+            
+            setTimeout(() => {
+                if (formTitle.textContent === 'Sign Up') {
+                    formTitle.textContent = 'Login';
+                    submitBtn.textContent = 'Login';
+                    toggleLink.textContent = 'Sign Up';
+                    document.querySelector('.toggle-text').innerHTML = 'Need an account? <a href="#" id="toggle-link">Sign Up</a>';
+                } else {
+                    formTitle.textContent = 'Sign Up';
+                    submitBtn.textContent = 'Sign Up';
+                    toggleLink.textContent = 'Login';
+                    document.querySelector('.toggle-text').innerHTML = 'Already have an account? <a href="#" id="toggle-link">Login</a>';
+                }
+                // Rebind event listener to the new toggle link
+                document.querySelector('#toggle-link').addEventListener('click', arguments.callee);
+            }, 150);
+        });
+
+
+        
+
+
+        // Enhanced form validation with animations
+        const emailInput = document.querySelector('#email');
+        const passwordInput = document.querySelector('#password');
+
+        function validateEmail(email) {
+            const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            return re.test(email);
+        }
+
+        function showError(input, message) {
+            input.classList.add('error');
+            setTimeout(() => {
+                input.classList.remove('error');
+            }, 500);
+        }
+
+        submitBtn.addEventListener('click', async (e) => {
+            e.preventDefault();
+            
+            let isValid = true;
+            const email = emailInput.value.trim();
+            const password = passwordInput.value;
+            const isSignUp = formTitle.textContent === 'Sign Up';
+            
+            // 验证邮箱
+            if (!validateEmail(email)) {
+                showError(emailInput, '请输入有效的邮箱地址');
+                isValid = false;
+            }
+            
+            // 验证密码
+            if (password.length < 6) {
+                showError(passwordInput, '密码长度至少6个字符');
+                isValid = false;
+            }
+            
+            if (!isValid) return;
+            
+            // 显示加载状态
+            const originalText = submitBtn.textContent;
+            submitBtn.innerHTML = '<div style="display: inline-block; width: 16px; height: 16px; border: 2px solid #fff; border-top: 2px solid transparent; border-radius: 50%; animation: spin 1s linear infinite;"></div> 处理中...';
+            submitBtn.disabled = true;
+            
+            // 添加旋转动画CSS
+            if (!document.querySelector('#spinner-style')) {
+                const style = document.createElement('style');
+                style.id = 'spinner-style';
+                style.textContent = '@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }';
+                document.head.appendChild(style);
+            }
+            
+            try {
+                const endpoint = isSignUp ? '/api/register' : '/api/login';
+                const requestData = {
+                    email: email,
+                    password: password
+                };
+                
+                // 如果是注册，添加姓名
+                if (isSignUp) {
+                    const nameFromEmail = email.split('@')[0];
+                    requestData.name = nameFromEmail;
+                    requestData.userType = 'student';
+                }
+                
+                const response = await fetch(`http://localhost:3000${endpoint}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(requestData)
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok && data.success) {
+                    // 存储用户信息和令牌
+                    localStorage.setItem('pairup_token', data.token);
+                    localStorage.setItem('pairup_user', JSON.stringify(data.user));
+                    
+                    // 显示成功消息
+                    submitBtn.innerHTML = '✓ 成功!';
+                    submitBtn.style.background = 'linear-gradient(135deg, #28a745, #20c997)';
+                    
+                    const successMsg = isSignUp 
+                        ? `🎉 注册成功！\n\n欢迎加入PairUp，${data.user.name}！\n正在跳转到主页...`
+                        : `🎉 登录成功！\n\n欢迎回来，${data.user.name}！\n正在跳转到主页...`;
+                    
+                    alert(successMsg);
+                    
+                    // 跳转到主页
+                    setTimeout(() => {
+                        window.location.href = 'homepage.html';
+                    }, 1500);
+                    
+                } else {
+                    // 显示错误消息
+                    throw new Error(data.error || '操作失败');
+                }
+                
+            } catch (error) {
+                console.error('认证错误:', error);
+                
+                // 显示错误
+                submitBtn.innerHTML = '❌ 失败';
+                submitBtn.style.background = 'linear-gradient(135deg, #dc3545, #c82333)';
+                
+                let errorMessage = '操作失败，请重试';
+                if (error.message.includes('邮箱已被注册')) {
+                    errorMessage = '该邮箱已被注册，请使用其他邮箱或尝试登录';
+                } else if (error.message.includes('邮箱或密码错误')) {
+                    errorMessage = '邮箱或密码错误，请检查后重试';
+                } else if (error.message.includes('fetch')) {
+                    errorMessage = '无法连接到服务器，请确保后端服务正在运行';
+                }
+                
+                alert(`❌ ${errorMessage}`);
+                
+                // 恢复按钮状态
+                setTimeout(() => {
+                    submitBtn.textContent = originalText;
+                    submitBtn.style.background = 'linear-gradient(135deg, #ff7f00, #e66d00)';
+                    submitBtn.disabled = false;
+                }, 2000);
+            }
+        });
+
+        // Simple navigation without transition effects
+        document.querySelectorAll('.nav-links a').forEach(link => {
+            link.addEventListener('click', (e) => {
+                if (e.target.href.includes('login.html') || e.target.href.includes('homepage.html')) {
+                    // Direct navigation without any effects
+                    window.location.href = e.target.href;
+                }
+            });
+        });
+
+        // Add floating particles background effect
+        function createParticle() {
+            const particle = document.createElement('div');
+            particle.style.cssText = `
+                position: absolute;
+                width: 4px;
+                height: 4px;
+                background: rgba(255, 255, 255, 0.6);
+                border-radius: 50%;
+                pointer-events: none;
+                animation: float 6s linear infinite;
+                top: 100vh;
+                left: ${Math.random() * 100}vw;
+            `;
+            
+            document.body.appendChild(particle);
+            
+            setTimeout(() => {
+                particle.remove();
+            }, 6000);
+        }
+
+        // Create particles periodically
+        setInterval(createParticle, 800);
+
+        // Add CSS for particle animation
+        const particleStyle = document.createElement('style');
+        particleStyle.textContent = `
+            @keyframes float {
+                to {
+                    transform: translateY(-100vh) rotate(360deg);
+                    opacity: 0;
+                }
+            }
+        `;
+        document.head.appendChild(particleStyle);
+    </script>
+</body>
+</html>

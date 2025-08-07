@@ -1,0 +1,427 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PairUp - 测试页面</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: white;
+        }
+        
+        .container {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            padding: 30px;
+            border-radius: 15px;
+            margin: 20px 0;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        h1 {
+            text-align: center;
+            margin-bottom: 30px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+        
+        .status {
+            padding: 15px;
+            border-radius: 8px;
+            margin: 10px 0;
+            font-weight: bold;
+        }
+        
+        .success { background-color: rgba(40, 167, 69, 0.8); }
+        .error { background-color: rgba(220, 53, 69, 0.8); }
+        .info { background-color: rgba(23, 162, 184, 0.8); }
+        
+        button {
+            background: linear-gradient(135deg, #ff7f00, #e66d00);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 5px;
+            transition: all 0.3s ease;
+        }
+        
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(255, 127, 0, 0.4);
+        }
+        
+        input {
+            width: 100%;
+            padding: 12px;
+            margin: 8px 0;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            font-size: 16px;
+        }
+        
+        input::placeholder {
+            color: rgba(255, 255, 255, 0.7);
+        }
+        
+        .test-section {
+            margin: 20px 0;
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 10px;
+        }
+        
+        .code {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 10px;
+            border-radius: 5px;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            white-space: pre-wrap;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🚀 PairUp 系统测试页面</h1>
+        
+        <!-- 服务器状态检查 -->
+        <div class="test-section">
+            <h3>📊 服务器状态检查</h3>
+            <button onclick="checkServerHealth()">检查后端服务器</button>
+            <div id="server-status"></div>
+        </div>
+
+        <!-- 用户注册测试 -->
+        <div class="test-section">
+            <h3>👤 用户注册测试</h3>
+            <input type="email" id="reg-email" placeholder="输入邮箱 (例: test@example.com)">
+            <input type="password" id="reg-password" placeholder="输入密码 (至少6位)">
+            <input type="text" id="reg-name" placeholder="输入姓名">
+            <button onclick="testRegister()">测试注册</button>
+            <div id="register-result"></div>
+        </div>
+
+        <!-- 用户登录测试 -->
+        <div class="test-section">
+            <h3>🔐 用户登录测试</h3>
+            <input type="email" id="login-email" placeholder="输入注册的邮箱">
+            <input type="password" id="login-password" placeholder="输入密码">
+            <button onclick="testLogin()">测试登录</button>
+            <div id="login-result"></div>
+        </div>
+
+        <!-- 用户信息获取测试 -->
+        <div class="test-section">
+            <h3>ℹ️ 用户信息测试</h3>
+            <button onclick="testUserProfile()">获取用户信息</button>
+            <div id="profile-result"></div>
+        </div>
+
+        <!-- 快速测试 -->
+        <div class="test-section">
+            <h3>⚡ 快速完整测试</h3>
+            <button onclick="runFullTest()">运行完整测试</button>
+            <div id="full-test-result"></div>
+        </div>
+
+        <!-- 说明信息 -->
+        <div class="test-section">
+            <h3>📝 使用说明</h3>
+            <div class="info status">
+                <strong>✅ 如何使用：</strong><br>
+                1. 首先点击"检查后端服务器"确保服务正常<br>
+                2. 在注册测试中输入邮箱和密码进行注册<br>
+                3. 使用相同信息进行登录测试<br>
+                4. 登录成功后可以获取用户信息<br>
+                5. 或直接点击"运行完整测试"自动测试所有功能
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = 'http://localhost:3000/api';
+        let authToken = '';
+
+        // 显示结果的辅助函数
+        function showResult(elementId, message, type = 'info') {
+            const element = document.getElementById(elementId);
+            element.innerHTML = `<div class="status ${type}">${message}</div>`;
+        }
+
+        // 检查服务器健康状态
+        async function checkServerHealth() {
+            try {
+                const response = await fetch(`${API_BASE}/health`);
+                const data = await response.json();
+                
+                if (response.ok) {
+                    showResult('server-status', 
+                        `✅ 服务器运行正常<br>
+                        状态: ${data.status}<br>
+                        运行时间: ${Math.round(data.uptime)}秒<br>
+                        时间: ${new Date(data.timestamp).toLocaleString()}`, 
+                        'success'
+                    );
+                } else {
+                    throw new Error('服务器返回错误状态');
+                }
+            } catch (error) {
+                showResult('server-status', 
+                    `❌ 服务器连接失败<br>
+                    错误: ${error.message}<br>
+                    请确保后端服务器在 localhost:3000 运行`, 
+                    'error'
+                );
+            }
+        }
+
+        // 测试用户注册
+        async function testRegister() {
+            const email = document.getElementById('reg-email').value || `test${Date.now()}@example.com`;
+            const password = document.getElementById('reg-password').value || 'test123456';
+            const name = document.getElementById('reg-name').value || 'Test User';
+
+            try {
+                const response = await fetch(`${API_BASE}/register`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        email: email,
+                        password: password,
+                        name: name,
+                        userType: 'student'
+                    })
+                });
+
+                const data = await response.json();
+
+                if (response.ok && data.success) {
+                    authToken = data.token;
+                    showResult('register-result', 
+                        `✅ 注册成功!<br>
+                        用户ID: ${data.user.id}<br>
+                        邮箱: ${data.user.email}<br>
+                        姓名: ${data.user.name}<br>
+                        令牌: ${data.token.substring(0, 20)}...`, 
+                        'success'
+                    );
+                    
+                    // 自动填入登录表单
+                    document.getElementById('login-email').value = email;
+                    document.getElementById('login-password').value = password;
+                } else {
+                    throw new Error(data.error || '注册失败');
+                }
+            } catch (error) {
+                showResult('register-result', 
+                    `❌ 注册失败<br>错误: ${error.message}`, 
+                    'error'
+                );
+            }
+        }
+
+        // 测试用户登录
+        async function testLogin() {
+            const email = document.getElementById('login-email').value;
+            const password = document.getElementById('login-password').value;
+
+            if (!email || !password) {
+                showResult('login-result', '❌ 请输入邮箱和密码', 'error');
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_BASE}/login`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        email: email,
+                        password: password
+                    })
+                });
+
+                const data = await response.json();
+
+                if (response.ok && data.success) {
+                    authToken = data.token;
+                    showResult('login-result', 
+                        `✅ 登录成功!<br>
+                        欢迎回来: ${data.user.name}<br>
+                        用户类型: ${data.user.userType}<br>
+                        令牌: ${data.token.substring(0, 20)}...`, 
+                        'success'
+                    );
+                } else {
+                    throw new Error(data.error || '登录失败');
+                }
+            } catch (error) {
+                showResult('login-result', 
+                    `❌ 登录失败<br>错误: ${error.message}`, 
+                    'error'
+                );
+            }
+        }
+
+        // 测试获取用户信息
+        async function testUserProfile() {
+            if (!authToken) {
+                showResult('profile-result', '❌ 请先登录获取令牌', 'error');
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_BASE}/user/profile`, {
+                    headers: {
+                        'Authorization': `Bearer ${authToken}`
+                    }
+                });
+
+                const data = await response.json();
+
+                if (response.ok && data.success) {
+                    showResult('profile-result', 
+                        `✅ 用户信息获取成功!<br>
+                        ID: ${data.user.id}<br>
+                        邮箱: ${data.user.email}<br>
+                        姓名: ${data.user.name}<br>
+                        类型: ${data.user.userType}<br>
+                        注册时间: ${new Date(data.user.memberSince).toLocaleString()}`, 
+                        'success'
+                    );
+                } else {
+                    throw new Error(data.error || '获取用户信息失败');
+                }
+            } catch (error) {
+                showResult('profile-result', 
+                    `❌ 获取用户信息失败<br>错误: ${error.message}`, 
+                    'error'
+                );
+            }
+        }
+
+        // 运行完整测试
+        async function runFullTest() {
+            showResult('full-test-result', '🔄 开始运行完整测试...', 'info');
+            
+            const testEmail = `test${Date.now()}@example.com`;
+            const testPassword = 'test123456';
+            const testName = `Test User ${Date.now()}`;
+            
+            let results = [];
+
+            // 1. 检查服务器
+            try {
+                const healthResponse = await fetch(`${API_BASE}/health`);
+                if (healthResponse.ok) {
+                    results.push('✅ 服务器健康检查通过');
+                } else {
+                    throw new Error('服务器健康检查失败');
+                }
+            } catch (error) {
+                results.push(`❌ 服务器健康检查失败: ${error.message}`);
+                showResult('full-test-result', results.join('<br>'), 'error');
+                return;
+            }
+
+            // 2. 测试注册
+            try {
+                const registerResponse = await fetch(`${API_BASE}/register`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        email: testEmail,
+                        password: testPassword,
+                        name: testName
+                    })
+                });
+                
+                const registerData = await registerResponse.json();
+                if (registerResponse.ok && registerData.success) {
+                    results.push(`✅ 用户注册成功: ${registerData.user.email}`);
+                    authToken = registerData.token;
+                } else {
+                    throw new Error(registerData.error);
+                }
+            } catch (error) {
+                results.push(`❌ 用户注册失败: ${error.message}`);
+            }
+
+            // 3. 测试登录
+            try {
+                const loginResponse = await fetch(`${API_BASE}/login`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        email: testEmail,
+                        password: testPassword
+                    })
+                });
+                
+                const loginData = await loginResponse.json();
+                if (loginResponse.ok && loginData.success) {
+                    results.push(`✅ 用户登录成功: ${loginData.user.name}`);
+                    authToken = loginData.token;
+                } else {
+                    throw new Error(loginData.error);
+                }
+            } catch (error) {
+                results.push(`❌ 用户登录失败: ${error.message}`);
+            }
+
+            // 4. 测试获取用户信息
+            if (authToken) {
+                try {
+                    const profileResponse = await fetch(`${API_BASE}/user/profile`, {
+                        headers: { 'Authorization': `Bearer ${authToken}` }
+                    });
+                    
+                    const profileData = await profileResponse.json();
+                    if (profileResponse.ok && profileData.success) {
+                        results.push(`✅ 用户信息获取成功: ID ${profileData.user.id}`);
+                    } else {
+                        throw new Error(profileData.error);
+                    }
+                } catch (error) {
+                    results.push(`❌ 用户信息获取失败: ${error.message}`);
+                }
+            }
+
+            // 显示完整测试结果
+            const successCount = results.filter(r => r.startsWith('✅')).length;
+            const totalTests = results.length;
+            
+            const summary = `
+                <strong>🎯 完整测试结果</strong><br>
+                通过: ${successCount}/${totalTests} 项测试<br><br>
+                ${results.join('<br>')}
+                <br><br>
+                <strong>测试用户信息:</strong><br>
+                邮箱: ${testEmail}<br>
+                密码: ${testPassword}<br>
+                令牌: ${authToken ? authToken.substring(0, 30) + '...' : '未获取'}
+            `;
+            
+            showResult('full-test-result', summary, successCount === totalTests ? 'success' : 'error');
+        }
+
+        // 页面加载时自动检查服务器状态
+        window.addEventListener('load', () => {
+            checkServerHealth();
+        });
+    </script>
+</body>
+</html>
