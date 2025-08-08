@@ -3,12 +3,409 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="google-signin-client_id" content="391365837056-orpev6lf4ia10eir5vggrpa9bdjpc9l3.apps.googleusercontent.com">
     <title>PairUp - Sign Up / Login</title>
-    <!-- Google Identity Services -->
-    <script src="https://accounts.google.com/gsi/client" async defer></script>
+    <script src="https://apis.google.com/js/platform.js" async defer></script>
+
     <style>
-        /* ... (retain all your original CSS here) ... */
-        /* For brevity, copy all your login.html <style> content here unchanged! */
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background: linear-gradient(135deg, #ff7f00, #e66d00, #ff7f00);
+            background-size: 400% 400%;
+            animation: gradientShift 15s ease infinite;
+            overflow-y: scroll;
+            transition: opacity 0.3s ease, transform 0.3s ease;
+        }
+
+        @keyframes gradientShift {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        /* Top bar styles (same as homepage) */
+        .top-bar {
+            background-color: #ffffff;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            padding: 10px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        @keyframes bounce {
+            0%, 20%, 50%, 80%, 100% {
+                transform: translateY(0);
+            }
+            40% {
+                transform: translateY(-10px);
+            }
+            60% {
+                transform: translateY(-5px);
+            }
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            75% { transform: translateX(5px); }
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+        }
+
+        @keyframes glow {
+            0%, 100% {
+                box-shadow: 0 4px 20px rgba(255, 127, 0, 0.3);
+            }
+            50% {
+                box-shadow: 0 8px 30px rgba(255, 127, 0, 0.6);
+            }
+        }
+
+        .top-bar.bounce {
+            animation: bounce 0.6s ease;
+        }
+
+        .top-bar {
+            backdrop-filter: blur(10px);
+            background: rgba(255, 255, 255, 0.95);
+            transition: all 0.3s ease;
+        }
+
+        .top-bar:hover {
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            background: rgba(255, 255, 255, 0.98);
+        }
+
+        .logo {
+            height: 60px;
+            background-color: rgb(254, 254, 254);
+            padding: 5px;
+            border-radius: 5px;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 20px;
+        }
+
+        .nav-links a {
+            text-decoration: none;
+            color: #333;
+            font-weight: bold;
+            padding: 10px 15px;
+            border-radius: 5px;
+            transition: background-color 0.3s, transform 0.2s;
+        }
+
+        .nav-links a:hover {
+            background-color: #f0f0f0;
+            transform: translateY(-2px);
+        }
+
+        .nav-links a {
+            position: relative;
+            overflow: hidden;
+        }
+
+        .nav-links a::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: left 0.5s;
+        }
+
+        .nav-links a:hover::before {
+            left: 100%;
+        }
+
+        .nav-links .signup {
+            background-color: #ff7f00;
+            color: white;
+        }
+
+        .nav-links .signup:hover {
+            background-color: #e66d00;
+            transform: scale(1.05) translateY(-2px);
+            animation: glow 2s infinite;
+        }
+
+        /* Login section styles */
+        .login-section {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            padding: 20px;
+            box-sizing: border-box;
+            position: relative;
+        }
+
+        .login-section::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+        }
+
+        .login-container {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: 0 8px 40px rgba(0, 0, 0, 0.2);
+            width: 100%;
+            max-width: 400px;
+            text-align: center;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            animation: fadeInUp 0.8s ease;
+            position: relative;
+            z-index: 1;
+            transition: all 0.3s ease;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .login-container:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 50px rgba(0, 0, 0, 0.25);
+        }
+
+        .login-container h2 {
+            color: #ff7f00;
+            margin-bottom: 20px;
+            font-size: 2em;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+            animation: fadeInUp 0.8s ease 0.2s both;
+        }
+
+        .login-container input {
+            width: 100%;
+            padding: 15px;
+            margin: 10px auto;
+            border: 2px solid rgba(255, 127, 0, 0.3);
+            border-radius: 10px;
+            font-size: 1em;
+            background: rgba(255, 255, 255, 0.9);
+            transition: all 0.3s ease;
+            backdrop-filter: blur(5px);
+            display: block;
+            text-align: center;
+            box-sizing: border-box;
+        }
+
+        .login-container input:focus {
+            outline: none;
+            border-color: #ff7f00;
+            box-shadow: 0 0 15px rgba(255, 127, 0, 0.3);
+            transform: scale(1.02);
+        }
+
+        .login-container input.error {
+            border-color: #ff4444;
+            animation: shake 0.5s ease;
+        }
+
+        .login-container button {
+            width: 100%;
+            padding: 15px;
+            margin: 15px auto;
+            border: none;
+            border-radius: 10px;
+            background: linear-gradient(135deg, #ff7f00, #e66d00);
+            color: white;
+            font-weight: bold;
+            font-size: 1.1em;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            display: block;
+            text-align: center;
+            box-sizing: border-box;
+        }
+
+        .login-container button::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: left 0.5s;
+        }
+
+        .login-container button:hover::before {
+            left: 100%;
+        }
+
+        .login-container button:hover {
+            background: linear-gradient(135deg, #e66d00, #cc5500);
+            transform: translateY(-2px) scale(1.02);
+            box-shadow: 0 8px 25px rgba(255, 127, 0, 0.4);
+        }
+
+        .login-container button:active {
+            transform: translateY(0) scale(0.98);
+        }
+
+        .google-login {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            background: linear-gradient(135deg, #4285f4, #357ae8);
+            padding: 15px;
+            margin: 15px auto;
+            border-radius: 10px;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            width: 100%;
+            box-sizing: border-box;
+            cursor: pointer;
+            border: none;
+            color: white;
+            font-weight: bold;
+            font-size: 1.1em;
+        }
+
+        .google-login::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: left 0.5s;
+        }
+
+        .google-login:hover::before {
+            left: 100%;
+        }
+
+        .google-login:hover {
+            background: linear-gradient(135deg, #357ae8, #2968cc);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(66, 133, 244, 0.4);
+        }
+
+        .google-login img {
+            width: 20px;
+            height: 20px;
+        }
+
+        .toggle-text {
+            margin: 15px auto 0;
+            color: #333;
+            text-align: center;
+            width: 100%;
+            display: block;
+        }
+
+        .toggle-text a {
+            color: #ff7f00;
+            text-decoration: none;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .toggle-text a::after {
+            content: '';
+            position: absolute;
+            width: 0;
+            height: 2px;
+            bottom: -2px;
+            left: 50%;
+            background-color: #ff7f00;
+            transition: all 0.3s ease;
+        }
+
+        .toggle-text a:hover {
+            color: #e66d00;
+            transform: scale(1.05);
+        }
+
+        .toggle-text a:hover::after {
+            width: 100%;
+            left: 0;
+        }
+
+
+
+
+
+        /* Responsive design */
+        @media (max-width: 768px) {
+            .top-bar {
+                flex-direction: column;
+                gap: 15px;
+            }
+
+            .nav-links {
+                flex-wrap: wrap;
+                justify-content: center;
+            }
+
+            .login-container {
+                padding: 20px;
+            }
+
+            .login-container h2 {
+                font-size: 1.8em;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .nav-links {
+                gap: 10px;
+            }
+
+            .nav-links a {
+                padding: 8px 12px;
+            }
+
+            .login-container {
+                padding: 15px;
+                width: 90%;
+            }
+
+            .login-container h2 {
+                font-size: 1.5em;
+            }
+        }
     </style>
 </head>
 <body>
@@ -35,50 +432,397 @@
             <input type="password" id="password" placeholder="Enter your password" required>
             <button id="submit-btn">Sign Up</button>
 
-            <!-- Google Login -->
-            <div style="width:100%;margin:15px 0;">
-                <div id="g_id_onload"
-                     data-client_id="YOUR_GOOGLE_CLIENT_ID"
-                     data-context="signin"
-                     data-ux_mode="popup"
-                     data-callback="handleCredentialResponse"
-                     data-auto_prompt="false"></div>
-                <div class="g_id_signin"
-                     data-type="standard"
-                     data-shape="rectangular"
-                     data-theme="outline"
-                     data-text="continue_with"
-                     data-size="large"
-                     data-logo_alignment="left">
-                </div>
+            <!-- Divider -->
+            <div style="display: flex; align-items: center; margin: 20px 0; color: #666;">
+                <div style="flex: 1; height: 1px; background: rgba(102, 102, 102, 0.3);"></div>
+                <span style="padding: 0 15px; font-size: 0.9em;">or</span>
+                <div style="flex: 1; height: 1px; background: rgba(102, 102, 102, 0.3);"></div>
             </div>
-            <!-- End Google Login -->
+
+            <!-- Google Sign In Button -->
+            <button class="google-login" id="google-login-btn">
+                <svg width="20" height="20" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path fill="#ffffff" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+                    <path fill="#ffffff" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+                    <path fill="#ffffff" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
+                    <path fill="#ffffff" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+                </svg>
+                Continue with Google
+            </button>
+
+            <!-- Official Google Sign-In Button -->
+            <div class="g-signin2" data-onsuccess="onSignIn" style="margin: 10px auto; display: flex; justify-content: center;"></div>
 
             <div class="toggle-text">
                 Already have an account? <a href="#" id="toggle-link">Login</a>
+            </div>
+            
+            <!-- Google Sign Out Link (hidden by default, shown when user is signed in) -->
+            <div style="text-align: center; margin-top: 15px; font-size: 0.9em; opacity: 0.7;">
+                <a href="#" onclick="signOut();" style="color: #666; text-decoration: none;">Sign out from Google</a>
+            </div>
+            
+            <!-- Privacy Policy and Terms -->
+            <div style="text-align: center; margin-top: 20px; font-size: 0.8em; color: #999; line-height: 1.4;">
+                By signing up, you agree to our 
+                <a href="/privacy-policy.html" style="color: #ff7f00; text-decoration: none;">Privacy Policy</a>
+                and 
+                <a href="/terms-of-service.html" style="color: #ff7f00; text-decoration: none;">Terms of Service</a>
             </div>
         </div>
     </section>
 
     <script>
-        // Top bar bounce effect (unchanged)
-        // ... (retain all your original script code up to the bottom) ...
+        // Top bar bounce effect
+        const topBar = document.querySelector('.top-bar');
+        let isBouncing = false;
 
-        // Google Login callback
-        function handleCredentialResponse(response) {
-            // The ID token is in response.credential
-            // You can send it to your backend for verification/login
-            // For demo: just show success and pretend login
-            // In production, send response.credential to your backend
-            alert("Google login successful!\nID token: " + response.credential.substring(0, 20) + "...");
-            // Example: redirect after login
+        window.addEventListener('scroll', () => {
+            if ((window.innerHeight + window.scrollY) >= document.body.offsetHeight - 10 && !isBouncing) {
+                isBouncing = true;
+                topBar.classList.add('bounce');
+                setTimeout(() => {
+                    topBar.classList.remove('bounce');
+                    isBouncing = false;
+                }, 600);
+            }
+        });
+
+        // Enhanced toggle between Sign Up and Login with animation
+        const formTitle = document.querySelector('#form-title');
+        const submitBtn = document.querySelector('#submit-btn');
+        const toggleLink = document.querySelector('#toggle-link');
+        const loginContainer = document.querySelector('.login-container');
+        const googleLoginBtn = document.querySelector('#google-login-btn');
+
+        function animateToggle() {
+            loginContainer.style.transform = 'scale(0.95)';
+            loginContainer.style.opacity = '0.8';
             setTimeout(() => {
-                window.location.href = 'homepage.html';
-            }, 1000);
+                loginContainer.style.transform = 'scale(1)';
+                loginContainer.style.opacity = '1';
+            }, 200);
         }
 
-        // The rest of your JS (toggle, validation, etc.) remains unchanged
-        // ... (copy all your original <script> code here) ...
+        toggleLink.addEventListener('click', (e) => {
+            e.preventDefault();
+            animateToggle();
+            
+            setTimeout(() => {
+                if (formTitle.textContent === 'Sign Up') {
+                    formTitle.textContent = 'Login';
+                    submitBtn.textContent = 'Login';
+                    toggleLink.textContent = 'Sign Up';
+                    document.querySelector('.toggle-text').innerHTML = 'Need an account? <a href="#" id="toggle-link">Sign Up</a>';
+                } else {
+                    formTitle.textContent = 'Sign Up';
+                    submitBtn.textContent = 'Sign Up';
+                    toggleLink.textContent = 'Login';
+                    document.querySelector('.toggle-text').innerHTML = 'Already have an account? <a href="#" id="toggle-link">Login</a>';
+                }
+                // Rebind event listener to the new toggle link
+                document.querySelector('#toggle-link').addEventListener('click', arguments.callee);
+            }, 150);
+        });
+
+        // Google登录按钮事件
+        googleLoginBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            // 显示加载状态
+            const originalHTML = googleLoginBtn.innerHTML;
+            googleLoginBtn.innerHTML = '<div style="display: inline-block; width: 16px; height: 16px; border: 2px solid #fff; border-top: 2px solid transparent; border-radius: 50%; animation: spin 1s linear infinite;"></div> Connecting to Google...';
+            googleLoginBtn.disabled = true;
+            
+            // 重定向到Google OAuth
+            window.location.href = '/auth/google';
+        });
+
+        // 检查URL参数，处理Google登录回调
+        function handleAuthCallback() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const token = urlParams.get('token');
+            const userString = urlParams.get('user');
+            const error = urlParams.get('error');
+            
+            if (error === 'google_auth_failed') {
+                alert('❌ Google登录失败，请重试');
+                // 清理URL参数
+                window.history.replaceState({}, document.title, window.location.pathname);
+                return;
+            }
+            
+            if (token && userString) {
+                try {
+                    const user = JSON.parse(decodeURIComponent(userString));
+                    
+                    // 存储用户信息和令牌
+                    localStorage.setItem('pairup_token', token);
+                    localStorage.setItem('pairup_user', JSON.stringify(user));
+                    
+                    // 显示成功消息
+                    alert(`🎉 Google登录成功！\n\n欢迎，${user.name}！\n正在跳转到主页...`);
+                    
+                    // 清理URL参数
+                    window.history.replaceState({}, document.title, window.location.pathname);
+                    
+                    // 跳转到主页
+                    setTimeout(() => {
+                        window.location.href = 'homepage.html';
+                    }, 1500);
+                    
+                } catch (parseError) {
+                    console.error('解析用户数据失败:', parseError);
+                    alert('❌ 登录数据处理失败，请重试');
+                    // 清理URL参数
+                    window.history.replaceState({}, document.title, window.location.pathname);
+                }
+            }
+        }
+
+        // 页面加载时检查认证回调
+        document.addEventListener('DOMContentLoaded', handleAuthCallback);
+
+        // Google Sign-In API callback function
+        function onSignIn(googleUser) {
+            var profile = googleUser.getBasicProfile();
+            console.log('ID: ' + profile.getId()); // Do not send to your backend! Use an ID token instead.
+            console.log('Name: ' + profile.getName());
+            console.log('Image URL: ' + profile.getImageUrl());
+            console.log('Email: ' + profile.getEmail()); // This is null if the 'email' scope is not present.
+            
+            // Get ID token for secure backend verification
+            const idToken = googleUser.getAuthResponse().id_token;
+            
+            // Send the token to your backend for verification
+            fetch('/api/google-signin', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    idToken: idToken,
+                    profile: {
+                        id: profile.getId(),
+                        name: profile.getName(),
+                        email: profile.getEmail(),
+                        imageUrl: profile.getImageUrl()
+                    }
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Store user info and token
+                    localStorage.setItem('pairup_token', data.token);
+                    localStorage.setItem('pairup_user', JSON.stringify(data.user));
+                    
+                    // Show success message
+                    alert(`🎉 Google登录成功！\n\n欢迎，${data.user.name}！\n正在跳转到主页...`);
+                    
+                    // Redirect to homepage
+                    setTimeout(() => {
+                        window.location.href = 'homepage.html';
+                    }, 1500);
+                } else {
+                    alert('❌ Google登录失败：' + (data.error || '未知错误'));
+                }
+            })
+            .catch(error => {
+                console.error('Google Sign-In error:', error);
+                alert('❌ Google登录过程中发生错误，请重试');
+            });
+        }
+
+        // Function to sign out from Google
+        function signOut() {
+            var auth2 = gapi.auth2.getAuthInstance();
+            auth2.signOut().then(function () {
+                console.log('User signed out.');
+                // Clear local storage
+                localStorage.removeItem('pairup_token');
+                localStorage.removeItem('pairup_user');
+                // Optionally redirect to login page or refresh
+                alert('已成功登出');
+                window.location.reload();
+            });
+        }
+
+        
+
+
+        // Enhanced form validation with animations
+        const emailInput = document.querySelector('#email');
+        const passwordInput = document.querySelector('#password');
+
+        function validateEmail(email) {
+            const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            return re.test(email);
+        }
+
+        function showError(input, message) {
+            input.classList.add('error');
+            setTimeout(() => {
+                input.classList.remove('error');
+            }, 500);
+        }
+
+        submitBtn.addEventListener('click', async (e) => {
+            e.preventDefault();
+            
+            let isValid = true;
+            const email = emailInput.value.trim();
+            const password = passwordInput.value;
+            const isSignUp = formTitle.textContent === 'Sign Up';
+            
+            // 验证邮箱
+            if (!validateEmail(email)) {
+                showError(emailInput, '请输入有效的邮箱地址');
+                isValid = false;
+            }
+            
+            // 验证密码
+            if (password.length < 6) {
+                showError(passwordInput, '密码长度至少6个字符');
+                isValid = false;
+            }
+            
+            if (!isValid) return;
+            
+            // 显示加载状态
+            const originalText = submitBtn.textContent;
+            submitBtn.innerHTML = '<div style="display: inline-block; width: 16px; height: 16px; border: 2px solid #fff; border-top: 2px solid transparent; border-radius: 50%; animation: spin 1s linear infinite;"></div> 处理中...';
+            submitBtn.disabled = true;
+            
+            // 添加旋转动画CSS
+            if (!document.querySelector('#spinner-style')) {
+                const style = document.createElement('style');
+                style.id = 'spinner-style';
+                style.textContent = '@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }';
+                document.head.appendChild(style);
+            }
+            
+            try {
+                const endpoint = isSignUp ? '/api/register' : '/api/login';
+                const requestData = {
+                    email: email,
+                    password: password
+                };
+                
+                // 如果是注册，添加姓名
+                if (isSignUp) {
+                    const nameFromEmail = email.split('@')[0];
+                    requestData.name = nameFromEmail;
+                    requestData.userType = 'student';
+                }
+                
+                const response = await fetch(`http://localhost:3000${endpoint}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(requestData)
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok && data.success) {
+                    // 存储用户信息和令牌
+                    localStorage.setItem('pairup_token', data.token);
+                    localStorage.setItem('pairup_user', JSON.stringify(data.user));
+                    
+                    // 显示成功消息
+                    submitBtn.innerHTML = '✓ 成功!';
+                    submitBtn.style.background = 'linear-gradient(135deg, #28a745, #20c997)';
+                    
+                    const successMsg = isSignUp 
+                        ? `🎉 注册成功！\n\n欢迎加入PairUp，${data.user.name}！\n正在跳转到主页...`
+                        : `🎉 登录成功！\n\n欢迎回来，${data.user.name}！\n正在跳转到主页...`;
+                    
+                    alert(successMsg);
+                    
+                    // 跳转到主页
+                    setTimeout(() => {
+                        window.location.href = 'homepage.html';
+                    }, 1500);
+                    
+                } else {
+                    // 显示错误消息
+                    throw new Error(data.error || '操作失败');
+                }
+                
+            } catch (error) {
+                console.error('认证错误:', error);
+                
+                // 显示错误
+                submitBtn.innerHTML = '❌ 失败';
+                submitBtn.style.background = 'linear-gradient(135deg, #dc3545, #c82333)';
+                
+                let errorMessage = '操作失败，请重试';
+                if (error.message.includes('邮箱已被注册')) {
+                    errorMessage = '该邮箱已被注册，请使用其他邮箱或尝试登录';
+                } else if (error.message.includes('邮箱或密码错误')) {
+                    errorMessage = '邮箱或密码错误，请检查后重试';
+                } else if (error.message.includes('fetch')) {
+                    errorMessage = '无法连接到服务器，请确保后端服务正在运行';
+                }
+                
+                alert(`❌ ${errorMessage}`);
+                
+                // 恢复按钮状态
+                setTimeout(() => {
+                    submitBtn.textContent = originalText;
+                    submitBtn.style.background = 'linear-gradient(135deg, #ff7f00, #e66d00)';
+                    submitBtn.disabled = false;
+                }, 2000);
+            }
+        });
+
+        // Simple navigation without transition effects
+        document.querySelectorAll('.nav-links a').forEach(link => {
+            link.addEventListener('click', (e) => {
+                if (e.target.href.includes('login.html') || e.target.href.includes('homepage.html')) {
+                    // Direct navigation without any effects
+                    window.location.href = e.target.href;
+                }
+            });
+        });
+
+        // Add floating particles background effect
+        function createParticle() {
+            const particle = document.createElement('div');
+            particle.style.cssText = `
+                position: absolute;
+                width: 4px;
+                height: 4px;
+                background: rgba(255, 255, 255, 0.6);
+                border-radius: 50%;
+                pointer-events: none;
+                animation: float 6s linear infinite;
+                top: 100vh;
+                left: ${Math.random() * 100}vw;
+            `;
+            
+            document.body.appendChild(particle);
+            
+            setTimeout(() => {
+                particle.remove();
+            }, 6000);
+        }
+
+        // Create particles periodically
+        setInterval(createParticle, 800);
+
+        // Add CSS for particle animation
+        const particleStyle = document.createElement('style');
+        particleStyle.textContent = `
+            @keyframes float {
+                to {
+                    transform: translateY(-100vh) rotate(360deg);
+                    opacity: 0;
+                }
+            }
+        `;
+        document.head.appendChild(particleStyle);
     </script>
 </body>
 </html>

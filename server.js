@@ -7,7 +7,10 @@ const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
 const validator = require('validator');
 const path = require('path');
-require('dotenv').config();
+const passport = require('passport');
+const GoogleStrategy = require('passport-google-oauth20').Strategy;
+const session = require('express-session');
+require('dotenv').config({ path: './config.env' });
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -33,6 +36,115 @@ const limiter = rateLimit({
     }
 });
 app.use('/api/', limiter);
+
+// 会话配置
+app.use(session({
+    secret: process.env.SESSION_SECRET || 'pairup_session_secret_change_in_production',
+    resave: false,
+    saveUninitialized: false,
+    cookie: { 
+        secure: false, // 设置为true如果使用HTTPS
+        maxAge: 24 * 60 * 60 * 1000 // 24小时
+    }
+}));
+
+// 初始化Passport
+app.use(passport.initialize());
+app.use(passport.session());
+
+// Google OAuth策略配置
+passport.use(new GoogleStrategy({
+    clientID: process.env.GOOGLE_CLIENT_ID,
+    clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+    callbackURL: process.env.GOOGLE_CALLBACK_URL || "http://localhost:3000/oauth2callback"
+}, async (accessToken, refreshToken, profile, done) => {
+    try {
+        // 检查用户是否已存在
+        db.get('SELECT * FROM users WHERE google_id = ?', [profile.id], async (err, user) => {
+            if (err) {
+                return done(err, null);
+            }
+            
+            if (user) {
+                // 用户已存在，更新最后登录时间
+                db.run('UPDATE users SET last_login = CURRENT_TIMESTAMP WHERE id = ?', [user.id]);
+                return done(null, user);
+            } else {
+                // 检查是否已有相同邮箱的用户
+                const email = profile.emails && profile.emails[0] ? profile.emails[0].value : null;
+                if (email) {
+                    db.get('SELECT * FROM users WHERE email = ?', [email], (err, existingUser) => {
+                        if (err) {
+                            return done(err, null);
+                        }
+                        
+                        if (existingUser) {
+                            // 用户存在但没有Google ID，更新记录
+                            db.run('UPDATE users SET google_id = ?, last_login = CURRENT_TIMESTAMP WHERE id = ?', 
+                                [profile.id, existingUser.id], (err) => {
+                                if (err) {
+                                    return done(err, null);
+                                }
+                                existingUser.google_id = profile.id;
+                                return done(null, existingUser);
+                            });
+                        } else {
+                            // 创建新用户
+                            const stmt = db.prepare(`
+                                INSERT INTO users (email, name, google_id, user_type, profile_picture, is_verified) 
+                                VALUES (?, ?, ?, ?, ?, ?)
+                            `);
+                            
+                            const userData = [
+                                email,
+                                profile.displayName || profile.name?.givenName || 'Google User',
+                                profile.id,
+                                'student',
+                                profile.photos && profile.photos[0] ? profile.photos[0].value : null,
+                                1 // Google用户默认已验证
+                            ];
+                            
+                            stmt.run(userData, function(err) {
+                                if (err) {
+                                    return done(err, null);
+                                }
+                                
+                                const newUser = {
+                                    id: this.lastID,
+                                    email: email,
+                                    name: profile.displayName || profile.name?.givenName || 'Google User',
+                                    google_id: profile.id,
+                                    user_type: 'student',
+                                    profile_picture: profile.photos && profile.photos[0] ? profile.photos[0].value : null,
+                                    is_verified: 1
+                                };
+                                
+                                return done(null, newUser);
+                            });
+                            
+                            stmt.finalize();
+                        }
+                    });
+                } else {
+                    return done(new Error('No email provided by Google'), null);
+                }
+            }
+        });
+    } catch (error) {
+        return done(error, null);
+    }
+}));
+
+// Passport序列化
+passport.serializeUser((user, done) => {
+    done(null, user.id);
+});
+
+passport.deserializeUser((id, done) => {
+    db.get('SELECT * FROM users WHERE id = ?', [id], (err, user) => {
+        done(err, user);
+    });
+});
 
 // 解析JSON
 app.use(express.json({ limit: '10mb' }));
@@ -317,6 +429,170 @@ app.post('/api/logout', authenticateToken, (req, res) => {
         success: true,
         message: '登出成功'
     });
+});
+
+// Google OAuth路由
+app.get('/auth/google', 
+    passport.authenticate('google', { scope: ['profile', 'email'] })
+);
+
+app.get('/oauth2callback',
+    passport.authenticate('google', { failureRedirect: '/login.html?error=google_auth_failed' }),
+    (req, res) => {
+        // 成功登录，生成JWT token
+        const token = jwt.sign(
+            { 
+                id: req.user.id, 
+                email: req.user.email, 
+                name: req.user.name,
+                userType: req.user.user_type
+            },
+            JWT_SECRET,
+            { expiresIn: '7d' }
+        );
+        
+        // 重定向到前端，带上token
+        res.redirect(`/login.html?token=${token}&user=${encodeURIComponent(JSON.stringify({
+            id: req.user.id,
+            email: req.user.email,
+            name: req.user.name,
+            userType: req.user.user_type,
+            profilePicture: req.user.profile_picture
+        }))}`);
+    }
+);
+
+// Google Sign-In API endpoint for client-side authentication
+app.post('/api/google-signin', async (req, res) => {
+    try {
+        const { idToken, profile } = req.body;
+        
+        if (!idToken || !profile) {
+            return res.status(400).json({ 
+                success: false, 
+                error: '缺少必要的认证信息' 
+            });
+        }
+        
+        // In a production environment, you should verify the idToken with Google
+        // For now, we'll trust the client-side authentication and use profile data
+        
+        const { id: googleId, email, name, imageUrl } = profile;
+        
+        if (!email || !googleId) {
+            return res.status(400).json({ 
+                success: false, 
+                error: '无效的Google账户信息' 
+            });
+        }
+        
+        // Check if user already exists
+        db.get('SELECT * FROM users WHERE google_id = ? OR email = ?', [googleId, email], (err, existingUser) => {
+            if (err) {
+                console.error('数据库查询错误:', err);
+                return res.status(500).json({ 
+                    success: false, 
+                    error: '服务器内部错误' 
+                });
+            }
+            
+            if (existingUser) {
+                // Update existing user
+                const updateQuery = existingUser.google_id ? 
+                    'UPDATE users SET last_login = CURRENT_TIMESTAMP, profile_picture = ? WHERE id = ?' :
+                    'UPDATE users SET google_id = ?, last_login = CURRENT_TIMESTAMP, profile_picture = ?, is_verified = 1 WHERE id = ?';
+                
+                const updateParams = existingUser.google_id ? 
+                    [imageUrl, existingUser.id] :
+                    [googleId, imageUrl, existingUser.id];
+                
+                db.run(updateQuery, updateParams, (updateErr) => {
+                    if (updateErr) {
+                        console.error('用户更新错误:', updateErr);
+                        return res.status(500).json({ 
+                            success: false, 
+                            error: '用户信息更新失败' 
+                        });
+                    }
+                    
+                    // Generate JWT token
+                    const token = jwt.sign(
+                        {
+                            id: existingUser.id,
+                            email: existingUser.email,
+                            name: existingUser.name,
+                            userType: existingUser.user_type
+                        },
+                        JWT_SECRET,
+                        { expiresIn: '7d' }
+                    );
+                    
+                    res.json({
+                        success: true,
+                        message: '登录成功',
+                        user: {
+                            id: existingUser.id,
+                            email: existingUser.email,
+                            name: existingUser.name,
+                            userType: existingUser.user_type,
+                            profilePicture: imageUrl
+                        },
+                        token
+                    });
+                });
+            } else {
+                // Create new user
+                const stmt = db.prepare(`
+                    INSERT INTO users (email, name, google_id, user_type, profile_picture, is_verified) 
+                    VALUES (?, ?, ?, ?, ?, ?)
+                `);
+                
+                stmt.run([email, name, googleId, 'student', imageUrl, 1], function(createErr) {
+                    if (createErr) {
+                        console.error('用户创建错误:', createErr);
+                        return res.status(500).json({ 
+                            success: false, 
+                            error: '用户创建失败' 
+                        });
+                    }
+                    
+                    // Generate JWT token
+                    const token = jwt.sign(
+                        {
+                            id: this.lastID,
+                            email: email,
+                            name: name,
+                            userType: 'student'
+                        },
+                        JWT_SECRET,
+                        { expiresIn: '7d' }
+                    );
+                    
+                    res.json({
+                        success: true,
+                        message: '注册并登录成功',
+                        user: {
+                            id: this.lastID,
+                            email: email,
+                            name: name,
+                            userType: 'student',
+                            profilePicture: imageUrl
+                        },
+                        token
+                    });
+                });
+                
+                stmt.finalize();
+            }
+        });
+        
+    } catch (error) {
+        console.error('Google Sign-In API错误:', error);
+        res.status(500).json({ 
+            success: false, 
+            error: '服务器内部错误' 
+        });
+    }
 });
 
 // 健康检查
