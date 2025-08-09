@@ -90,15 +90,39 @@
 
 ```
 pairup.world/
-├── server.js              # 主服务器文件
-├── package.json           # 项目依赖配置
-├── config.env            # 环境变量配置
-├── database/             # 数据库文件
-│   └── pairup.db        # SQLite数据库
-├── homepage.html         # 主页
-├── login.html           # 登录/注册页
-├── pairuplogo.png       # 网站logo
-└── README.md           # 项目说明文档
+├── 🌐 Frontend Files
+│   ├── index.html              # 主页
+│   ├── login.html              # 登录/注册页
+│   ├── admin.html              # 管理后台
+│   ├── profile.html            # 用户资料页
+│   ├── test-system.html        # 测试系统
+│   ├── test-login.html         # 登录测试页
+│   ├── privacy-policy.html     # 隐私政策
+│   └── terms-of-service.html   # 服务条款
+│
+├── 🔧 Backend Files
+│   ├── server.js               # Express主服务器代码
+│   └── my-login-server         # 简单登录服务器示例脚本
+│
+├── ⚙️ Configuration
+│   ├── config.env              # 环境变量配置文件，存放密钥等
+│   ├── package.json            # Node.js依赖和项目配置
+│   └── package-lock.json       # 依赖锁定文件
+│
+├── 💾 Database
+│   └── database/
+│       └── pairup.db           # SQLite数据库文件
+│
+├── 📚 Documentation
+│   ├── README.md               # 项目说明文档
+│   ├── GOOGLE_LOGIN_IMPLEMENTATION.md  # Google登录实现文档
+│   └── GOOGLE_OAUTH_SETUP.md   # Google OAuth 配置说明
+│
+├── 🎨 Assets
+│   └── pairuplogo.png          # 网站logo或其它静态资源
+│
+└── 📦 Dependencies
+    └── node_modules/           # npm安装的依赖包目录（git忽略上传）
 ```
 
 ## 🔌 API 端点

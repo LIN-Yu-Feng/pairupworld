@@ -1,0 +1,863 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PairUp - System Test Dashboard</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: linear-gradient(135deg, #ff7f00, #e66d00);
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .test-card {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        .test-card h2 {
+            color: #ff7f00;
+            margin-top: 0;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            font-weight: bold;
+            cursor: pointer;
+            margin: 5px;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary {
+            background: #ff7f00;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #e66d00;
+        }
+
+        .btn-success {
+            background: #28a745;
+            color: white;
+        }
+
+        .btn-danger {
+            background: #dc3545;
+            color: white;
+        }
+
+        .btn-info {
+            background: #17a2b8;
+            color: white;
+        }
+
+        .status {
+            display: inline-block;
+            padding: 5px 10px;
+            border-radius: 15px;
+            font-size: 0.8em;
+            font-weight: bold;
+            margin-left: 10px;
+        }
+
+        .status.success {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .status.error {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .status.pending {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .test-result {
+            background: #f8f9fa;
+            border-left: 4px solid #007bff;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 5px;
+            font-family: monospace;
+            white-space: pre-wrap;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .navigation {
+            background: rgba(255, 255, 255, 0.9);
+            padding: 15px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .navigation a {
+            color: #ff7f00;
+            text-decoration: none;
+            font-weight: bold;
+            margin: 0 15px;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 20px;
+        }
+
+        input, select {
+            width: 100%;
+            padding: 8px;
+            margin: 5px 0;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+
+        .user-info {
+            background: #e7f5ff;
+            padding: 10px;
+            border-radius: 5px;
+            margin: 10px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="navigation">
+            <a href="index.html">🏠 Home</a>
+            <a href="login.html">🔐 Login</a>
+            <a href="profile.html">👤 Profile</a>
+            <a href="admin.html" style="background-color: #2c3e50; color: white; border-radius: 8px;">🔧 Admin</a>
+            <a href="#" onclick="clearAll()">🗑️ Clear All Data</a>
+        </div>
+
+        <div class="test-card">
+            <h1>🧪 PairUp System Test Dashboard</h1>
+            <p>This dashboard allows you to test all the authentication and user management features of the PairUp system.</p>
+            <div id="current-user" class="user-info" style="display: none;">
+                <strong>Current User:</strong> <span id="user-display"></span>
+                <button class="btn btn-danger" onclick="logout()">Logout</button>
+            </div>
+        </div>
+
+        <div class="grid">
+            <!-- User Registration Test -->
+            <div class="test-card">
+                <h2>👤 User Registration Test</h2>
+                <input type="text" id="reg-name" placeholder="Full Name" value="Test User">
+                <input type="email" id="reg-email" placeholder="Email" value="test@example.com">
+                <input type="password" id="reg-password" placeholder="Password" value="password123">
+                <input type="tel" id="reg-phone" placeholder="Phone" value="+1234567890">
+                <select id="reg-type">
+                    <option value="student">Student</option>
+                    <option value="tutor">Tutor</option>
+                    <option value="parent">Parent</option>
+                </select>
+                <input type="text" id="reg-bio" placeholder="Bio" value="Test user for system testing">
+                <br>
+                <button class="btn btn-primary" onclick="testRegister()">Test Registration</button>
+                <span id="reg-status" class="status pending">Ready</span>
+                <div id="reg-result" class="test-result" style="display: none;"></div>
+            </div>
+
+            <!-- User Login Test -->
+            <div class="test-card">
+                <h2>🔐 User Login Test</h2>
+                <input type="email" id="login-email" placeholder="Email" value="test@example.com">
+                <input type="password" id="login-password" placeholder="Password" value="password123">
+                <br>
+                <button class="btn btn-primary" onclick="testLogin()">Test Login</button>
+                <span id="login-status" class="status pending">Ready</span>
+                <div id="login-result" class="test-result" style="display: none;"></div>
+            </div>
+
+            <!-- Profile Management Test -->
+            <div class="test-card">
+                <h2>📝 Profile Management Test</h2>
+                <button class="btn btn-info" onclick="testGetProfile()">Get Profile</button>
+                <button class="btn btn-primary" onclick="testUpdateProfile()">Update Profile</button>
+                <span id="profile-status" class="status pending">Ready</span>
+                <div id="profile-result" class="test-result" style="display: none;"></div>
+            </div>
+
+            <!-- Email Verification Test -->
+            <div class="test-card">
+                <h2>📧 Email Verification Test</h2>
+                <input type="email" id="verify-email" placeholder="Email to verify" value="test@example.com">
+                <input type="text" id="verify-code" placeholder="6-digit verification code" maxlength="6">
+                <br>
+                <button class="btn btn-primary" onclick="testEmailVerification()">Verify Email</button>
+                <button class="btn btn-info" onclick="testResendVerification()">Resend Code</button>
+                <span id="verify-status" class="status pending">Ready</span>
+                <div id="verify-result" class="test-result" style="display: none;"></div>
+            </div>
+
+            <!-- Session Management Test -->
+            <div class="test-card">
+                <h2>🔑 Session Management Test</h2>
+                <button class="btn btn-info" onclick="testSessionValidation()">Validate Session</button>
+                <button class="btn btn-danger" onclick="testLogout()">Test Logout</button>
+                <span id="session-status" class="status pending">Ready</span>
+                <div id="session-result" class="test-result" style="display: none;"></div>
+            </div>
+
+            <!-- Database Operations Test -->
+            <div class="test-card">
+                <h2>🗄️ Database Operations Test</h2>
+                <button class="btn btn-info" onclick="testHealthCheck()">Health Check</button>
+                <button class="btn btn-primary" onclick="testCreateMultipleUsers()">Create Test Users</button>
+                <button class="btn btn-danger" onclick="testDeleteUser()">Delete Current User</button>
+                <span id="db-status" class="status pending">Ready</span>
+                <div id="db-result" class="test-result" style="display: none;"></div>
+            </div>
+
+            <!-- Admin Functions Test -->
+            <div class="test-card">
+                <h2>🔧 Admin Functions Test</h2>
+                <input type="email" id="admin-email" placeholder="Admin email" value="admin@pairup.world">
+                <input type="password" id="admin-password" placeholder="Admin password" value="admin123">
+                <br>
+                <button class="btn btn-primary" onclick="testAdminLogin()">Admin Login</button>
+                <button class="btn btn-info" onclick="testAdminStats()">Get Stats</button>
+                <button class="btn btn-warning" onclick="testAdminUserManagement()">User Management</button>
+                <span id="admin-status" class="status pending">Ready</span>
+                <div id="admin-result" class="test-result" style="display: none;"></div>
+            </div>
+
+            <!-- System Status -->
+            <div class="test-card">
+                <h2>📊 System Status</h2>
+                <button class="btn btn-success" onclick="runAllTests()">Run All Tests</button>
+                <button class="btn btn-info" onclick="checkSystemHealth()">Check System Health</button>
+                <button class="btn btn-primary" onclick="openAdminDashboard()">🔧 Open Admin Dashboard</button>
+                <span id="system-status" class="status pending">Ready</span>
+                <div id="system-result" class="test-result" style="display: none;"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = 'http://localhost:3000';
+
+        // Check if user is logged in and display info
+        function updateUserDisplay() {
+            const token = localStorage.getItem('pairup_token');
+            const user = localStorage.getItem('pairup_user');
+            
+            if (token && user) {
+                try {
+                    const userData = JSON.parse(user);
+                    document.getElementById('user-display').textContent = `${userData.name} (${userData.email})`;
+                    document.getElementById('current-user').style.display = 'block';
+                } catch (e) {
+                    console.error('Error parsing user data:', e);
+                }
+            } else {
+                document.getElementById('current-user').style.display = 'none';
+            }
+        }
+
+        // Set status
+        function setStatus(elementId, status, text) {
+            const element = document.getElementById(elementId);
+            element.className = `status ${status}`;
+            element.textContent = text;
+        }
+
+        // Show result
+        function showResult(elementId, content) {
+            const element = document.getElementById(elementId);
+            element.textContent = content;
+            element.style.display = 'block';
+        }
+
+        // Test user registration
+        async function testRegister() {
+            setStatus('reg-status', 'pending', 'Testing...');
+            
+            const userData = {
+                name: document.getElementById('reg-name').value,
+                email: document.getElementById('reg-email').value,
+                password: document.getElementById('reg-password').value,
+                phone: document.getElementById('reg-phone').value,
+                userType: document.getElementById('reg-type').value,
+                bio: document.getElementById('reg-bio').value
+            };
+
+            try {
+                const response = await fetch(`${API_BASE}/api/register`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(userData)
+                });
+
+                const data = await response.json();
+                
+                if (response.ok && data.success) {
+                    setStatus('reg-status', 'success', 'Success');
+                    localStorage.setItem('pairup_token', data.token);
+                    localStorage.setItem('pairup_user', JSON.stringify(data.user));
+                    updateUserDisplay();
+                    showResult('reg-result', `Registration successful!\nUser ID: ${data.user.id}\nToken: ${data.token.substring(0, 20)}...`);
+                } else {
+                    setStatus('reg-status', 'error', 'Failed');
+                    showResult('reg-result', `Registration failed: ${data.error}`);
+                }
+            } catch (error) {
+                setStatus('reg-status', 'error', 'Error');
+                showResult('reg-result', `Network error: ${error.message}`);
+            }
+        }
+
+        // Test user login
+        async function testLogin() {
+            setStatus('login-status', 'pending', 'Testing...');
+            
+            const loginData = {
+                email: document.getElementById('login-email').value,
+                password: document.getElementById('login-password').value
+            };
+
+            try {
+                const response = await fetch(`${API_BASE}/api/login`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(loginData)
+                });
+
+                const data = await response.json();
+                
+                if (response.ok && data.success) {
+                    setStatus('login-status', 'success', 'Success');
+                    localStorage.setItem('pairup_token', data.token);
+                    localStorage.setItem('pairup_user', JSON.stringify(data.user));
+                    updateUserDisplay();
+                    showResult('login-result', `Login successful!\nUser: ${data.user.name}\nToken: ${data.token.substring(0, 20)}...`);
+                } else {
+                    setStatus('login-status', 'error', 'Failed');
+                    showResult('login-result', `Login failed: ${data.error}`);
+                }
+            } catch (error) {
+                setStatus('login-status', 'error', 'Error');
+                showResult('login-result', `Network error: ${error.message}`);
+            }
+        }
+
+        // Test get profile
+        async function testGetProfile() {
+            const token = localStorage.getItem('pairup_token');
+            if (!token) {
+                setStatus('profile-status', 'error', 'No Token');
+                showResult('profile-result', 'Please login first');
+                return;
+            }
+
+            setStatus('profile-status', 'pending', 'Testing...');
+
+            try {
+                const response = await fetch(`${API_BASE}/api/user/profile`, {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+
+                const data = await response.json();
+                
+                if (response.ok && data.success) {
+                    setStatus('profile-status', 'success', 'Success');
+                    showResult('profile-result', `Profile retrieved:\n${JSON.stringify(data.user, null, 2)}`);
+                } else {
+                    setStatus('profile-status', 'error', 'Failed');
+                    showResult('profile-result', `Profile retrieval failed: ${data.error}`);
+                }
+            } catch (error) {
+                setStatus('profile-status', 'error', 'Error');
+                showResult('profile-result', `Network error: ${error.message}`);
+            }
+        }
+
+        // Test email verification
+        async function testEmailVerification() {
+            const email = document.getElementById('verify-email').value;
+            const code = document.getElementById('verify-code').value;
+            
+            if (!email || !code) {
+                setStatus('verify-status', 'error', 'Missing Data');
+                showResult('verify-result', 'Please enter both email and verification code');
+                return;
+            }
+
+            setStatus('verify-status', 'pending', 'Testing...');
+
+            try {
+                const response = await fetch(`${API_BASE}/api/verify-email`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        email: email,
+                        verificationCode: code
+                    })
+                });
+
+                const data = await response.json();
+                
+                if (response.ok && data.success) {
+                    setStatus('verify-status', 'success', 'Success');
+                    localStorage.setItem('pairup_token', data.token);
+                    localStorage.setItem('pairup_user', JSON.stringify(data.user));
+                    updateUserDisplay();
+                    showResult('verify-result', `Email verified successfully!\nUser: ${data.user.name}\nToken: ${data.token.substring(0, 20)}...`);
+                } else {
+                    setStatus('verify-status', 'error', 'Failed');
+                    showResult('verify-result', `Email verification failed: ${data.error}`);
+                }
+            } catch (error) {
+                setStatus('verify-status', 'error', 'Error');
+                showResult('verify-result', `Network error: ${error.message}`);
+            }
+        }
+
+        // Test resend verification
+        async function testResendVerification() {
+            const email = document.getElementById('verify-email').value;
+            
+            if (!email) {
+                setStatus('verify-status', 'error', 'Missing Email');
+                showResult('verify-result', 'Please enter an email address');
+                return;
+            }
+
+            setStatus('verify-status', 'pending', 'Testing...');
+
+            try {
+                const response = await fetch(`${API_BASE}/api/resend-verification`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ email: email })
+                });
+
+                const data = await response.json();
+                
+                if (response.ok && data.success) {
+                    setStatus('verify-status', 'success', 'Sent');
+                    showResult('verify-result', `Verification code resent successfully to ${email}`);
+                } else {
+                    setStatus('verify-status', 'error', 'Failed');
+                    showResult('verify-result', `Resend failed: ${data.error}`);
+                }
+            } catch (error) {
+                setStatus('verify-status', 'error', 'Error');
+                showResult('verify-result', `Network error: ${error.message}`);
+            }
+        }
+
+        // Test update profile
+        async function testUpdateProfile() {
+            const token = localStorage.getItem('pairup_token');
+            if (!token) {
+                setStatus('profile-status', 'error', 'No Token');
+                showResult('profile-result', 'Please login first');
+                return;
+            }
+
+            setStatus('profile-status', 'pending', 'Testing...');
+
+            const updateData = {
+                name: 'Updated Test User',
+                phone: '+9876543210',
+                location: 'Test City, Test Country',
+                bio: 'Updated bio for testing'
+            };
+
+            try {
+                const response = await fetch(`${API_BASE}/api/user/profile`, {
+                    method: 'PUT',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(updateData)
+                });
+
+                const data = await response.json();
+                
+                if (response.ok && data.success) {
+                    setStatus('profile-status', 'success', 'Success');
+                    localStorage.setItem('pairup_user', JSON.stringify(data.user));
+                    updateUserDisplay();
+                    showResult('profile-result', `Profile updated:\n${JSON.stringify(data.user, null, 2)}`);
+                } else {
+                    setStatus('profile-status', 'error', 'Failed');
+                    showResult('profile-result', `Profile update failed: ${data.error}`);
+                }
+            } catch (error) {
+                setStatus('profile-status', 'error', 'Error');
+                showResult('profile-result', `Network error: ${error.message}`);
+            }
+        }
+
+        // Test session validation
+        async function testSessionValidation() {
+            const token = localStorage.getItem('pairup_token');
+            setStatus('session-status', 'pending', 'Testing...');
+
+            if (!token) {
+                setStatus('session-status', 'error', 'No Token');
+                showResult('session-result', 'No token found in localStorage');
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_BASE}/api/user/profile`, {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+
+                if (response.ok) {
+                    setStatus('session-status', 'success', 'Valid');
+                    showResult('session-result', 'Session is valid and active');
+                } else if (response.status === 401 || response.status === 403) {
+                    setStatus('session-status', 'error', 'Invalid');
+                    showResult('session-result', 'Session is invalid or expired');
+                } else {
+                    setStatus('session-status', 'error', 'Error');
+                    showResult('session-result', `Unexpected response: ${response.status}`);
+                }
+            } catch (error) {
+                setStatus('session-status', 'error', 'Error');
+                showResult('session-result', `Network error: ${error.message}`);
+            }
+        }
+
+        // Test logout
+        async function testLogout() {
+            const token = localStorage.getItem('pairup_token');
+            setStatus('session-status', 'pending', 'Testing...');
+
+            try {
+                if (token) {
+                    await fetch(`${API_BASE}/api/logout`, {
+                        method: 'POST',
+                        headers: {
+                            'Authorization': `Bearer ${token}`
+                        }
+                    });
+                }
+
+                localStorage.removeItem('pairup_token');
+                localStorage.removeItem('pairup_user');
+                updateUserDisplay();
+                
+                setStatus('session-status', 'success', 'Logged Out');
+                showResult('session-result', 'Successfully logged out and cleared local storage');
+            } catch (error) {
+                setStatus('session-status', 'error', 'Error');
+                showResult('session-result', `Logout error: ${error.message}`);
+            }
+        }
+
+        // Test health check
+        async function testHealthCheck() {
+            setStatus('db-status', 'pending', 'Testing...');
+
+            try {
+                const response = await fetch(`${API_BASE}/api/health`);
+                const data = await response.json();
+                
+                if (response.ok) {
+                    setStatus('db-status', 'success', 'Healthy');
+                    showResult('db-result', `System health check passed:\n${JSON.stringify(data, null, 2)}`);
+                } else {
+                    setStatus('db-status', 'error', 'Unhealthy');
+                    showResult('db-result', `Health check failed: ${response.status}`);
+                }
+            } catch (error) {
+                setStatus('db-status', 'error', 'Error');
+                showResult('db-result', `Health check error: ${error.message}`);
+            }
+        }
+
+        // Test creating multiple users
+        async function testCreateMultipleUsers() {
+            setStatus('db-status', 'pending', 'Creating...');
+            
+            const testUsers = [
+                { name: 'Alice Student', email: 'alice@test.com', password: 'password123', userType: 'student' },
+                { name: 'Bob Tutor', email: 'bob@test.com', password: 'password123', userType: 'tutor' },
+                { name: 'Carol Parent', email: 'carol@test.com', password: 'password123', userType: 'parent' }
+            ];
+
+            let results = [];
+            
+            for (const user of testUsers) {
+                try {
+                    const response = await fetch(`${API_BASE}/api/register`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(user)
+                    });
+                    
+                    const data = await response.json();
+                    results.push(`${user.name}: ${response.ok ? 'Created' : data.error}`);
+                } catch (error) {
+                    results.push(`${user.name}: Error - ${error.message}`);
+                }
+            }
+
+            setStatus('db-status', 'success', 'Completed');
+            showResult('db-result', `Bulk user creation results:\n${results.join('\n')}`);
+        }
+
+        // Test delete user
+        async function testDeleteUser() {
+            const token = localStorage.getItem('pairup_token');
+            if (!token) {
+                setStatus('db-status', 'error', 'No Token');
+                showResult('db-result', 'Please login first');
+                return;
+            }
+
+            if (!confirm('This will delete the current user account. Continue?')) {
+                return;
+            }
+
+            setStatus('db-status', 'pending', 'Deleting...');
+
+            try {
+                const response = await fetch(`${API_BASE}/api/user/account`, {
+                    method: 'DELETE',
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+
+                const data = await response.json();
+                
+                if (response.ok && data.success) {
+                    setStatus('db-status', 'success', 'Deleted');
+                    localStorage.removeItem('pairup_token');
+                    localStorage.removeItem('pairup_user');
+                    updateUserDisplay();
+                    showResult('db-result', 'User account successfully deleted');
+                } else {
+                    setStatus('db-status', 'error', 'Failed');
+                    showResult('db-result', `Account deletion failed: ${data.error}`);
+                }
+            } catch (error) {
+                setStatus('db-status', 'error', 'Error');
+                showResult('db-result', `Network error: ${error.message}`);
+            }
+        }
+
+        // Check system health
+        async function checkSystemHealth() {
+            setStatus('system-status', 'pending', 'Checking...');
+            
+            const checks = [];
+            
+            // Health endpoint
+            try {
+                const response = await fetch(`${API_BASE}/api/health`);
+                checks.push(`Health endpoint: ${response.ok ? '✅ OK' : '❌ Failed'}`);
+            } catch (error) {
+                checks.push(`Health endpoint: ❌ Error - ${error.message}`);
+            }
+
+            // Database connection (indirect test via health check)
+            try {
+                const response = await fetch(`${API_BASE}/api/health`);
+                const data = await response.json();
+                checks.push(`Database: ${data.uptime ? '✅ Connected' : '❌ Not connected'}`);
+            } catch (error) {
+                checks.push(`Database: ❌ Connection error`);
+            }
+
+            setStatus('system-status', 'success', 'Complete');
+            showResult('system-result', `System Health Check:\n${checks.join('\n')}`);
+        }
+
+        // Run all tests
+        async function runAllTests() {
+            setStatus('system-status', 'pending', 'Running...');
+            
+            await testHealthCheck();
+            await new Promise(resolve => setTimeout(resolve, 1000));
+            
+            await testRegister();
+            await new Promise(resolve => setTimeout(resolve, 1000));
+            
+            await testLogin();
+            await new Promise(resolve => setTimeout(resolve, 1000));
+            
+            await testGetProfile();
+            await new Promise(resolve => setTimeout(resolve, 1000));
+            
+            await testUpdateProfile();
+            await new Promise(resolve => setTimeout(resolve, 1000));
+            
+            await testSessionValidation();
+            
+            setStatus('system-status', 'success', 'All Tests Complete');
+            showResult('system-result', 'All automated tests have been executed. Check individual test results above.');
+        }
+
+        // Logout function
+        function logout() {
+            testLogout();
+        }
+
+        // Test admin login
+        async function testAdminLogin() {
+            const email = document.getElementById('admin-email').value;
+            const password = document.getElementById('admin-password').value;
+            
+            setStatus('admin-status', 'pending', 'Testing...');
+
+            try {
+                const response = await fetch(`${API_BASE}/api/login`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        email: email,
+                        password: password
+                    })
+                });
+
+                const data = await response.json();
+                
+                if (response.ok && data.success && data.user.userType === 'admin') {
+                    setStatus('admin-status', 'success', 'Admin Login Success');
+                    localStorage.setItem('pairup_token', data.token);
+                    localStorage.setItem('pairup_user', JSON.stringify(data.user));
+                    updateUserDisplay();
+                    showResult('admin-result', `Admin login successful!\nUser: ${data.user.name}\nRole: ${data.user.userType}\nToken: ${data.token.substring(0, 20)}...`);
+                } else if (response.ok && data.success) {
+                    setStatus('admin-status', 'error', 'Not Admin');
+                    showResult('admin-result', `Login successful but user is not admin. Role: ${data.user.userType}`);
+                } else {
+                    setStatus('admin-status', 'error', 'Failed');
+                    showResult('admin-result', `Admin login failed: ${data.error}`);
+                }
+            } catch (error) {
+                setStatus('admin-status', 'error', 'Error');
+                showResult('admin-result', `Network error: ${error.message}`);
+            }
+        }
+
+        // Test admin stats
+        async function testAdminStats() {
+            const token = localStorage.getItem('pairup_token');
+            if (!token) {
+                setStatus('admin-status', 'error', 'No Token');
+                showResult('admin-result', 'Please login as admin first');
+                return;
+            }
+
+            setStatus('admin-status', 'pending', 'Testing...');
+
+            try {
+                const response = await fetch(`${API_BASE}/api/admin/stats`, {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+
+                const data = await response.json();
+                
+                if (response.ok && data.success) {
+                    setStatus('admin-status', 'success', 'Stats Retrieved');
+                    showResult('admin-result', `Admin stats retrieved:\n${JSON.stringify(data.stats, null, 2)}`);
+                } else {
+                    setStatus('admin-status', 'error', 'Failed');
+                    showResult('admin-result', `Failed to get stats: ${data.error}`);
+                }
+            } catch (error) {
+                setStatus('admin-status', 'error', 'Error');
+                showResult('admin-result', `Network error: ${error.message}`);
+            }
+        }
+
+        // Test admin user management
+        async function testAdminUserManagement() {
+            const token = localStorage.getItem('pairup_token');
+            if (!token) {
+                setStatus('admin-status', 'error', 'No Token');
+                showResult('admin-result', 'Please login as admin first');
+                return;
+            }
+
+            setStatus('admin-status', 'pending', 'Testing...');
+
+            try {
+                const response = await fetch(`${API_BASE}/api/admin/users?limit=5`, {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+
+                const data = await response.json();
+                
+                if (response.ok && data.success) {
+                    setStatus('admin-status', 'success', 'Users Retrieved');
+                    const users = data.users.map(u => `${u.id}: ${u.name} (${u.email}) - ${u.userType}`).join('\n');
+                    showResult('admin-result', `Admin user management test:\nTotal users: ${data.pagination?.totalUsers || data.users.length}\n\nUsers:\n${users}`);
+                } else {
+                    setStatus('admin-status', 'error', 'Failed');
+                    showResult('admin-result', `Failed to get users: ${data.error}`);
+                }
+            } catch (error) {
+                setStatus('admin-status', 'error', 'Error');
+                showResult('admin-result', `Network error: ${error.message}`);
+            }
+        }
+
+        // Open admin dashboard
+        function openAdminDashboard() {
+            window.open('/admin.html', '_blank');
+        }
+
+        // Clear all data
+        function clearAll() {
+            if (confirm('This will clear all local storage data. Continue?')) {
+                localStorage.clear();
+                updateUserDisplay();
+                alert('All local data cleared');
+            }
+        }
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            updateUserDisplay();
+        });
+    </script>
+</body>
+</html>

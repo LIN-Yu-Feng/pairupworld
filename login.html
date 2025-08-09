@@ -153,6 +153,38 @@
             animation: glow 2s infinite;
         }
 
+        .nav-links .admin-link {
+            background-color: #2c3e50 !important;
+            color: white !important;
+            display: inline-block !important;
+            visibility: visible !important;
+            opacity: 1 !important;
+            min-width: 80px !important;
+        }
+
+        .nav-links .admin-link:hover {
+            background-color: #34495e !important;
+            transform: scale(1.05) translateY(-2px);
+            box-shadow: 0 4px 15px rgba(44, 62, 80, 0.4);
+        }
+
+        /* Make sure admin link is always visible */
+        @media (max-width: 768px) {
+            .nav-links .admin-link {
+                background-color: #e74c3c !important; /* Red background for debugging on mobile */
+                font-weight: bold !important;
+                flex-shrink: 0 !important;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .nav-links .admin-link {
+                background-color: #f39c12 !important; /* Orange background for debugging on small mobile */
+                font-size: 0.9em !important;
+                padding: 6px 10px !important;
+            }
+        }
+
         /* Login section styles */
         .login-section {
             display: flex;
@@ -411,7 +443,7 @@
 <body>
     <!-- Top bar (same as homepage) -->
     <header class="top-bar">
-        <a href="/homepage.html">
+        <a href="/index.html">
             <img src="pairuplogo.png" alt="Pair Up World Logo" class="logo">
         </a>
         <nav class="nav-links">
@@ -420,6 +452,7 @@
             <a href="#">Tutors</a>
             <a href="#">Organizations</a>
             <a href="#">Contact</a>
+            <a href="admin.html" class="admin-link">🔧 Admin</a>
             <a href="login.html" class="signup">Sign Up / Login</a>
         </nav>
     </header>
@@ -430,7 +463,26 @@
             <h2 id="form-title">Sign Up</h2>
             <input type="email" id="email" placeholder="Enter your email" required>
             <input type="password" id="password" placeholder="Enter your password" required>
+            
+            <!-- Additional fields for registration (visible by default for Sign Up) -->
+            <div id="additional-fields" style="display: block;">
+                <input type="text" id="full-name" placeholder="Full Name" required>
+                <input type="tel" id="phone" placeholder="Phone Number (optional)">
+                <select id="user-type" style="width: 100%; padding: 15px; margin: 10px auto; border: 2px solid rgba(255, 127, 0, 0.3); border-radius: 10px; font-size: 1em; background: rgba(255, 255, 255, 0.9); transition: all 0.3s ease; backdrop-filter: blur(5px); display: block; text-align: center; box-sizing: border-box;">
+                    <option value="student">Student</option>
+                    <option value="tutor">Tutor</option>
+                    <option value="parent">Parent</option>
+                    <option value="organization">Organization</option>
+                </select>
+                <textarea id="bio" placeholder="Tell us about yourself (optional)" style="width: 100%; padding: 15px; margin: 10px auto; border: 2px solid rgba(255, 127, 0, 0.3); border-radius: 10px; font-size: 1em; background: rgba(255, 255, 255, 0.9); transition: all 0.3s ease; backdrop-filter: blur(5px); display: block; text-align: center; box-sizing: border-box; resize: vertical; min-height: 80px;"></textarea>
+            </div>
+            
             <button id="submit-btn">Sign Up</button>
+
+            <!-- Admin Link -->
+            <div style="text-align: center; margin: 15px 0;">
+                <a href="admin.html" class="admin-link" style="background-color: #2c3e50; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; font-weight: bold; display: inline-block; transition: all 0.3s ease;">🔧 Admin</a>
+            </div>
 
             <!-- Divider -->
             <div style="display: flex; align-items: center; margin: 20px 0; color: #666;">
@@ -456,7 +508,30 @@
             <div class="toggle-text">
                 Already have an account? <a href="#" id="toggle-link">Login</a>
             </div>
+        </div>
+
+        <!-- Email Verification Section (hidden by default) -->
+        <div class="login-container" id="verification-container" style="display: none;">
+            <h2>📧 Verify Your Email</h2>
+            <p style="text-align: center; color: #666; margin-bottom: 20px;">
+                We've sent a verification code to <strong id="verification-email"></strong>
+            </p>
             
+            <input type="text" id="verification-code" placeholder="Enter 6-digit verification code" maxlength="6" style="text-align: center; font-size: 1.2em; letter-spacing: 3px;">
+            
+            <button id="verify-btn" class="btn btn-primary">Verify Email</button>
+            
+            <div style="text-align: center; margin-top: 15px;">
+                <button id="resend-btn" class="btn btn-secondary" style="background: #6c757d;">Resend Code</button>
+            </div>
+            
+            <div class="toggle-text">
+                <a href="#" id="back-to-login">← Back to Login</a>
+            </div>
+        </div>
+
+        <!-- Original login container continued -->
+        <div style="display: none;" id="original-footer">
             <!-- Google Sign Out Link (hidden by default, shown when user is signed in) -->
             <div style="text-align: center; margin-top: 15px; font-size: 0.9em; opacity: 0.7;">
                 <a href="#" onclick="signOut();" style="color: #666; text-decoration: none;">Sign out from Google</a>
@@ -509,16 +584,21 @@
             animateToggle();
             
             setTimeout(() => {
+                const additionalFields = document.querySelector('#additional-fields');
+                
                 if (formTitle.textContent === 'Sign Up') {
                     formTitle.textContent = 'Login';
                     submitBtn.textContent = 'Login';
                     toggleLink.textContent = 'Sign Up';
                     document.querySelector('.toggle-text').innerHTML = 'Need an account? <a href="#" id="toggle-link">Sign Up</a>';
+                    additionalFields.style.display = 'none';
                 } else {
                     formTitle.textContent = 'Sign Up';
                     submitBtn.textContent = 'Sign Up';
                     toggleLink.textContent = 'Login';
                     document.querySelector('.toggle-text').innerHTML = 'Already have an account? <a href="#" id="toggle-link">Login</a>';
+                    additionalFields.style.display = 'block';
+                    additionalFields.style.animation = 'fadeInUp 0.5s ease';
                 }
                 // Rebind event listener to the new toggle link
                 document.querySelector('#toggle-link').addEventListener('click', arguments.callee);
@@ -567,7 +647,7 @@
                     
                     // 跳转到主页
                     setTimeout(() => {
-                        window.location.href = 'homepage.html';
+                        window.location.href = 'index.html';
                     }, 1500);
                     
                 } catch (parseError) {
@@ -621,7 +701,7 @@
                     
                     // Redirect to homepage
                     setTimeout(() => {
-                        window.location.href = 'homepage.html';
+                        window.location.href = 'index.html';
                     }, 1500);
                 } else {
                     alert('❌ Google登录失败：' + (data.error || '未知错误'));
@@ -650,7 +730,7 @@
         
 
 
-        // Enhanced form validation with animations
+        // Enhanced form validation with animations and real-time feedback
         const emailInput = document.querySelector('#email');
         const passwordInput = document.querySelector('#password');
 
@@ -661,10 +741,146 @@
 
         function showError(input, message) {
             input.classList.add('error');
+            
+            // Remove existing error message
+            const existingError = input.parentNode.querySelector('.error-message');
+            if (existingError) {
+                existingError.remove();
+            }
+            
+            // Add error message
+            const errorDiv = document.createElement('div');
+            errorDiv.className = 'error-message';
+            errorDiv.textContent = message;
+            errorDiv.style.cssText = `
+                color: #ff4444;
+                font-size: 0.85em;
+                margin-top: 5px;
+                margin-bottom: 10px;
+                text-align: center;
+                animation: fadeInUp 0.3s ease;
+            `;
+            input.parentNode.insertBefore(errorDiv, input.nextSibling);
+            
             setTimeout(() => {
                 input.classList.remove('error');
-            }, 500);
+                if (errorDiv && errorDiv.parentNode) {
+                    errorDiv.remove();
+                }
+            }, 3000);
         }
+
+        function showSuccess(input, message) {
+            input.classList.remove('error');
+            input.style.borderColor = '#28a745';
+            
+            // Remove existing messages
+            const existingMessage = input.parentNode.querySelector('.success-message');
+            if (existingMessage) {
+                existingMessage.remove();
+            }
+            
+            // Add success message
+            const successDiv = document.createElement('div');
+            successDiv.className = 'success-message';
+            successDiv.textContent = message;
+            successDiv.style.cssText = `
+                color: #28a745;
+                font-size: 0.85em;
+                margin-top: 5px;
+                margin-bottom: 10px;
+                text-align: center;
+                animation: fadeInUp 0.3s ease;
+            `;
+            input.parentNode.insertBefore(successDiv, input.nextSibling);
+            
+            setTimeout(() => {
+                input.style.borderColor = '';
+                if (successDiv && successDiv.parentNode) {
+                    successDiv.remove();
+                }
+            }, 2000);
+        }
+
+        // Real-time email validation
+        emailInput.addEventListener('blur', () => {
+            const email = emailInput.value.trim();
+            if (email && !validateEmail(email)) {
+                showError(emailInput, '请输入有效的邮箱地址');
+            } else if (email && validateEmail(email)) {
+                showSuccess(emailInput, '✓ 邮箱格式正确');
+            }
+        });
+
+        // Real-time password validation
+        passwordInput.addEventListener('input', () => {
+            const password = passwordInput.value;
+            const errorMsg = passwordInput.parentNode.querySelector('.error-message');
+            
+            if (password.length > 0 && password.length < 6) {
+                if (!errorMsg) {
+                    showError(passwordInput, '密码长度至少6个字符');
+                }
+            } else if (password.length >= 6) {
+                if (errorMsg) {
+                    errorMsg.remove();
+                }
+                passwordInput.classList.remove('error');
+                passwordInput.style.borderColor = '#28a745';
+                setTimeout(() => {
+                    passwordInput.style.borderColor = '';
+                }, 1000);
+            }
+        });
+
+        // Clear validation messages when user starts typing
+        emailInput.addEventListener('input', () => {
+            const errorMsg = emailInput.parentNode.querySelector('.error-message');
+            const successMsg = emailInput.parentNode.querySelector('.success-message');
+            if (errorMsg) errorMsg.remove();
+            if (successMsg) successMsg.remove();
+            emailInput.classList.remove('error');
+            emailInput.style.borderColor = '';
+        });
+
+        // Form strength indicator for passwords
+        function getPasswordStrength(password) {
+            let strength = 0;
+            if (password.length >= 8) strength++;
+            if (/[a-z]/.test(password)) strength++;
+            if (/[A-Z]/.test(password)) strength++;
+            if (/[0-9]/.test(password)) strength++;
+            if (/[^A-Za-z0-9]/.test(password)) strength++;
+            return strength;
+        }
+
+        passwordInput.addEventListener('input', () => {
+            const password = passwordInput.value;
+            if (password.length >= 6) {
+                const strength = getPasswordStrength(password);
+                const strengthTexts = ['很弱', '弱', '一般', '强', '很强'];
+                const strengthColors = ['#ff4444', '#ff8800', '#ffbb00', '#88cc00', '#28a745'];
+                
+                // Remove existing strength indicator
+                const existingIndicator = passwordInput.parentNode.querySelector('.strength-indicator');
+                if (existingIndicator) {
+                    existingIndicator.remove();
+                }
+                
+                const strengthDiv = document.createElement('div');
+                strengthDiv.className = 'strength-indicator';
+                strengthDiv.innerHTML = `
+                    <div style="display: flex; align-items: center; justify-content: center; margin-top: 5px; font-size: 0.8em;">
+                        <span style="margin-right: 8px;">密码强度:</span>
+                        <span style="color: ${strengthColors[strength]}; font-weight: bold;">${strengthTexts[strength]}</span>
+                    </div>
+                    <div style="width: 100%; height: 4px; background: #eee; border-radius: 2px; margin-top: 3px;">
+                        <div style="width: ${(strength + 1) * 20}%; height: 100%; background: ${strengthColors[strength]}; border-radius: 2px; transition: all 0.3s ease;"></div>
+                    </div>
+                `;
+                passwordInput.parentNode.insertBefore(strengthDiv, passwordInput.nextSibling);
+            }
+        });
 
         submitBtn.addEventListener('click', async (e) => {
             e.preventDefault();
@@ -708,11 +924,26 @@
                     password: password
                 };
                 
-                // 如果是注册，添加姓名
+                // 如果是注册，添加额外信息
                 if (isSignUp) {
-                    const nameFromEmail = email.split('@')[0];
-                    requestData.name = nameFromEmail;
-                    requestData.userType = 'student';
+                    const fullName = document.querySelector('#full-name').value.trim();
+                    const phone = document.querySelector('#phone').value.trim();
+                    const userType = document.querySelector('#user-type').value;
+                    const bio = document.querySelector('#bio').value.trim();
+                    
+                    // 验证必填字段
+                    if (!fullName) {
+                        showError(document.querySelector('#full-name'), '请输入您的姓名');
+                        submitBtn.textContent = originalText;
+                        submitBtn.style.background = 'linear-gradient(135deg, #ff7f00, #e66d00)';
+                        submitBtn.disabled = false;
+                        return;
+                    }
+                    
+                    requestData.name = fullName;
+                    requestData.userType = userType;
+                    if (phone) requestData.phone = phone;
+                    if (bio) requestData.bio = bio;
                 }
                 
                 const response = await fetch(`http://localhost:3000${endpoint}`, {
@@ -726,28 +957,40 @@
                 const data = await response.json();
                 
                 if (response.ok && data.success) {
-                    // 存储用户信息和令牌
-                    localStorage.setItem('pairup_token', data.token);
-                    localStorage.setItem('pairup_user', JSON.stringify(data.user));
-                    
-                    // 显示成功消息
-                    submitBtn.innerHTML = '✓ 成功!';
-                    submitBtn.style.background = 'linear-gradient(135deg, #28a745, #20c997)';
-                    
-                    const successMsg = isSignUp 
-                        ? `🎉 注册成功！\n\n欢迎加入PairUp，${data.user.name}！\n正在跳转到主页...`
-                        : `🎉 登录成功！\n\n欢迎回来，${data.user.name}！\n正在跳转到主页...`;
-                    
-                    alert(successMsg);
-                    
-                    // 跳转到主页
-                    setTimeout(() => {
-                        window.location.href = 'homepage.html';
-                    }, 1500);
-                    
+                    if (data.requiresVerification) {
+                        // 需要邮箱验证
+                        showVerificationForm(data.user.email);
+                        submitBtn.innerHTML = '✓ 注册成功!';
+                        submitBtn.style.background = 'linear-gradient(135deg, #28a745, #20c997)';
+                        alert(`🎉 注册成功！\n\n验证码已发送到 ${data.user.email}\n请查看您的邮箱并输入验证码。`);
+                    } else {
+                        // 直接登录成功
+                        localStorage.setItem('pairup_token', data.token);
+                        localStorage.setItem('pairup_user', JSON.stringify(data.user));
+                        
+                        // 显示成功消息
+                        submitBtn.innerHTML = '✓ 成功!';
+                        submitBtn.style.background = 'linear-gradient(135deg, #28a745, #20c997)';
+                        
+                        const successMsg = isSignUp 
+                            ? `🎉 注册成功！\n\n欢迎加入PairUp，${data.user.name}！\n正在跳转到主页...`
+                            : `🎉 登录成功！\n\n欢迎回来，${data.user.name}！\n正在跳转到主页...`;
+                        
+                        alert(successMsg);
+                        
+                        // 跳转到主页
+                        setTimeout(() => {
+                            window.location.href = 'index.html';
+                        }, 1500);
+                    }
                 } else {
-                    // 显示错误消息
-                    throw new Error(data.error || '操作失败');
+                    // 检查是否需要验证
+                    if (data.requiresVerification) {
+                        showVerificationForm(data.email);
+                        throw new Error('请先验证您的邮箱地址');
+                    } else {
+                        throw new Error(data.error || '操作失败');
+                    }
                 }
                 
             } catch (error) {
@@ -780,7 +1023,7 @@
         // Simple navigation without transition effects
         document.querySelectorAll('.nav-links a').forEach(link => {
             link.addEventListener('click', (e) => {
-                if (e.target.href.includes('login.html') || e.target.href.includes('homepage.html')) {
+                if (e.target.href.includes('login.html') || e.target.href.includes('index.html')) {
                     // Direct navigation without any effects
                     window.location.href = e.target.href;
                 }
@@ -811,6 +1054,170 @@
 
         // Create particles periodically
         setInterval(createParticle, 800);
+
+        // Email verification functions
+        function showVerificationForm(email) {
+            document.querySelector('.login-container').style.display = 'none';
+            document.getElementById('verification-container').style.display = 'block';
+            document.getElementById('verification-email').textContent = email;
+            
+            // Store email for verification
+            sessionStorage.setItem('verification_email', email);
+            
+            // Focus on verification code input
+            setTimeout(() => {
+                document.getElementById('verification-code').focus();
+            }, 100);
+        }
+
+        function hideVerificationForm() {
+            document.querySelector('.login-container').style.display = 'block';
+            document.getElementById('verification-container').style.display = 'none';
+            sessionStorage.removeItem('verification_email');
+        }
+
+        // Verify email
+        async function verifyEmail(email, code) {
+            try {
+                const response = await fetch(`http://localhost:3000/api/verify-email`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        email: email,
+                        verificationCode: code
+                    })
+                });
+
+                const data = await response.json();
+
+                if (response.ok && data.success) {
+                    // 存储用户信息和令牌
+                    localStorage.setItem('pairup_token', data.token);
+                    localStorage.setItem('pairup_user', JSON.stringify(data.user));
+                    
+                    alert(`🎉 邮箱验证成功！\n\n欢迎加入PairUp，${data.user.name}！\n正在跳转到主页...`);
+                    
+                    // 跳转到主页
+                    setTimeout(() => {
+                        window.location.href = 'index.html';
+                    }, 1500);
+                    
+                    return true;
+                } else {
+                    alert(`❌ ${data.error}`);
+                    return false;
+                }
+            } catch (error) {
+                console.error('验证错误:', error);
+                alert('❌ 验证过程中发生错误，请重试');
+                return false;
+            }
+        }
+
+        // Resend verification code
+        async function resendVerificationCode(email) {
+            try {
+                const response = await fetch(`http://localhost:3000/api/resend-verification`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ email: email })
+                });
+
+                const data = await response.json();
+
+                if (response.ok && data.success) {
+                    alert('✅ 验证码已重新发送至您的邮箱');
+                } else {
+                    alert(`❌ ${data.error}`);
+                }
+            } catch (error) {
+                console.error('重发验证码错误:', error);
+                alert('❌ 重发验证码失败，请重试');
+            }
+        }
+
+        // Verification form event listeners
+        document.addEventListener('DOMContentLoaded', () => {
+            const verifyBtn = document.getElementById('verify-btn');
+            const resendBtn = document.getElementById('resend-btn');
+            const backToLoginBtn = document.getElementById('back-to-login');
+            const verificationCodeInput = document.getElementById('verification-code');
+
+            if (verifyBtn) {
+                // Verify button click
+                verifyBtn.addEventListener('click', async () => {
+                    const email = sessionStorage.getItem('verification_email');
+                    const code = verificationCodeInput.value.trim();
+
+                    if (!code) {
+                        alert('请输入验证码');
+                        return;
+                    }
+
+                    if (code.length !== 6) {
+                        alert('验证码应为6位数字');
+                        return;
+                    }
+
+                    verifyBtn.disabled = true;
+                    verifyBtn.textContent = '验证中...';
+
+                    const success = await verifyEmail(email, code);
+
+                    if (!success) {
+                        verifyBtn.disabled = false;
+                        verifyBtn.textContent = 'Verify Email';
+                        verificationCodeInput.value = '';
+                        verificationCodeInput.focus();
+                    }
+                });
+
+                // Resend button click
+                resendBtn.addEventListener('click', async () => {
+                    const email = sessionStorage.getItem('verification_email');
+                    
+                    resendBtn.disabled = true;
+                    resendBtn.textContent = '发送中...';
+
+                    await resendVerificationCode(email);
+
+                    setTimeout(() => {
+                        resendBtn.disabled = false;
+                        resendBtn.textContent = 'Resend Code';
+                    }, 30000); // 30秒后才能再次点击
+                });
+
+                // Back to login button
+                backToLoginBtn.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    hideVerificationForm();
+                });
+
+                // Auto-format verification code input
+                verificationCodeInput.addEventListener('input', (e) => {
+                    // Only allow numbers
+                    e.target.value = e.target.value.replace(/[^0-9]/g, '');
+                    
+                    // Auto-submit when 6 digits entered
+                    if (e.target.value.length === 6) {
+                        setTimeout(() => {
+                            verifyBtn.click();
+                        }, 500);
+                    }
+                });
+
+                // Enter key to verify
+                verificationCodeInput.addEventListener('keypress', (e) => {
+                    if (e.key === 'Enter') {
+                        verifyBtn.click();
+                    }
+                });
+            }
+        });
 
         // Add CSS for particle animation
         const particleStyle = document.createElement('style');
